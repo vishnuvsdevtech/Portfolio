@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vishnu Surendran — AI & Computer Vision Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3EFE6;
+    --card:#FAF8F2;
+    --ink:#1A1815;
+    --muted:#84807A;
+    --line:#E1DBCC;
+    --accent:#B85C39;
+    --accent-soft:#F1E2D8;
+    --radius:8px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent-soft); color:var(--accent);}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 32px;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+
+  /* ---------- Header ---------- */
+  header{
+    border-bottom:1px solid var(--line);
+  }
+  header .wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px;
+    gap:20px; flex-wrap:wrap;
+  }
+  .id-block{ display:flex; align-items:center; gap:12px; }
+  .avatar{
+    width:38px; height:38px; border-radius:50%;
+    background:var(--card) center/cover no-repeat url('photo.jpg');
+    border:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .id-text strong{
+    display:block; font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:14.5px;
+  }
+  .id-text small{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px; letter-spacing:0.03em; color:var(--muted);
+  }
+
+  nav{ display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+  nav a.nav-link{ font-size:13.5px; color:var(--muted); }
+  nav a.nav-link.active{ color:var(--accent); }
+  nav a.nav-link:hover{ color:var(--ink); }
+
+  .header-right{ display:flex; align-items:center; gap:14px; }
+  .loc-time{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted);
+    letter-spacing:0.03em; white-space:nowrap;
+  }
+  .search-pill{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted);
+    border:1px solid var(--line); border-radius:6px; padding:5px 9px;
+  }
+  .cta{
+    font-family:'Inter',sans-serif; font-weight:500;
+    font-size:13.5px;
+    background:var(--ink); color:var(--bg);
+    padding:9px 16px; border-radius:6px;
+    white-space:nowrap;
+  }
+  .cta:hover{ opacity:0.85; }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding:60px 0 50px; }
+  .status{
+    display:inline-flex; align-items:center; gap:9px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; letter-spacing:0.03em; color:var(--muted);
+    margin-bottom:28px; text-transform:uppercase;
+  }
+  .status .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+  .hero-grid{
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:start;
+  }
+  @media (max-width:760px){ .hero-grid{grid-template-columns:1fr;} }
+
+  h1.headline{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(46px, 7vw, 74px);
+    line-height:1.0;
+    letter-spacing:-0.02em;
+    margin:0 0 26px;
+  }
+  h1.headline span{ display:block; }
+  h1.headline .accent{ color:var(--accent); }
+
+  .hero-sub{ color:var(--muted); font-size:16px; max-width:440px; margin:0 0 30px; }
+
+  .hero-photo{
+    display:flex; flex-direction:column; align-items:flex-end; gap:36px;
+  }
+  .photo-frame{
+    width:100%; max-width:320px; aspect-ratio:4/4.6;
+    border-radius:var(--radius);
+    background:var(--card) center/cover no-repeat url('photo.jpg');
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--muted); font-family:'IBM Plex Mono', monospace; font-size:12px;
+    text-align:center; padding:12px;
+  }
+  .stats{ display:flex; gap:40px; align-self:flex-start; }
+  .stat .num{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:26px; }
+  .stat .label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.03em;
+    color:var(--muted); margin-top:4px; text-transform:uppercase;
+  }
+
+  /* ---------- Section shared ---------- */
+  .section{ padding:56px 0; border-top:1px solid var(--line); }
+  .section-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    flex-wrap:wrap; gap:16px; margin-bottom:36px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.03em;
+    color:var(--muted); text-transform:uppercase; margin-bottom:14px;
+  }
+  .section-desc{ max-width:560px; color:var(--muted); font-size:15px; }
+  .updated{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted); white-space:nowrap; }
+
+  /* ---------- Now cards ---------- */
+  .now-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .now-grid.three{ grid-template-columns:1fr 1fr 1fr; }
+  @media (max-width:680px){ .now-grid, .now-grid.three{ grid-template-columns:1fr; } }
+  .now-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 22px 20px;
+  }
+  .now-card .tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.04em;
+    color:var(--muted); text-transform:uppercase; margin-bottom:12px;
+  }
+  .now-card h3{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; margin:0 0 10px; }
+  .now-card p{ font-size:13.5px; color:var(--muted); margin:0; }
+
+  /* ---------- Work cards ---------- */
+  .work-list{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:760px){ .work-list{ grid-template-columns:1fr; } }
+  .work-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:24px 26px;
+    display:flex; flex-direction:column; align-items:flex-start; gap:0;
+  }
+  .work-index{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--muted); margin-bottom:12px; }
+  .work-card h3{ font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:0 0 8px; }
+  .work-card p{ margin:0 0 16px; color:var(--muted); font-size:14px; }
+  .tags{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px; }
+  .tags span{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--accent);
+    background:var(--accent-soft); padding:3px 9px; border-radius:20px;
+  }
+  .work-link{
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    border-bottom:1px solid var(--line); padding-bottom:2px; white-space:nowrap;
+  }
+  .work-link:hover{ border-color:var(--accent); color:var(--accent); }
+
+  /* ---------- Contact ---------- */
+  .contact-block{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:52px 44px;
+  }
+  .contact-block h2{
+    font-family:'Space Grotesk', sans-serif; font-size:30px; font-weight:600;
+    margin:0 0 14px; max-width:480px; letter-spacing:-0.01em;
+  }
+  .contact-block p{ color:var(--muted); max-width:440px; margin:0 0 26px; }
+
+  /* ---------- Footer ---------- */
+  footer{ border-top:1px solid var(--line); padding:48px 0 40px; }
+  .footer-grid{ display:grid; grid-template-columns:2fr 1fr 1fr; gap:40px; margin-bottom:40px; }
+  @media (max-width:680px){ .footer-grid{grid-template-columns:1fr; gap:26px;} }
+  .footer-col .f-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.03em;
+    color:var(--muted); margin-bottom:14px; text-transform:uppercase;
+  }
+  .footer-col a{ display:block; font-size:14px; margin-bottom:9px; }
+  .footer-col a:hover{ color:var(--accent); }
+  .footer-bottom{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    border-top:1px solid var(--line); padding-top:22px;
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="id-block">
+      <div class="avatar"></div>
+      <div class="id-text">
+        <strong>Vishnu Surendran</strong>
+        <small>AI ENGINEER · CV</small>
+      </div>
+    </div>
+    <nav>
+      <a class="nav-link active" href="#top">Home</a>
+      <a class="nav-link" href="#work">Work</a>
+      <a class="nav-link" href="#now">Now</a>
+      <a class="nav-link" href="#contact">Contact</a>
+    </nav>
+    <div class="header-right">
+      <span class="loc-time mono" id="clock">KOCHI · —:—</span>
+      <span class="search-pill">⌕ ⌘K</span>
+      <a class="cta" href="#contact">Get in touch →</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap" id="top">
+
+  <section class="hero">
+    <div class="status"><span class="dot"></span>Open to interesting AI &amp; vision problems</div>
+
+    <div class="hero-grid">
+      <div>
+        <h1 class="headline"><span>Detect.</span><span>Track.</span><span class="accent">Generate.</span></h1>
+        <p class="hero-sub">I build computer vision and generative AI systems — from real-time object detection to AI-driven video pipelines — and ship them as working software, not demos.</p>
+        <a class="cta" href="#contact">Get in touch →</a>
+      </div>
+
+      <div class="hero-photo">
+        <div class="photo-frame"></div>
+        <div class="stats">
+          <div class="stat"><div class="num">09</div><div class="label">Projects shipped</div></div>
+          <div class="stat"><div class="num">05+</div><div class="label">AI/CV domains</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="now">
+    <div class="section-top">
+      <div>
+        <div class="eyebrow">01 / Now · Currently</div>
+        <p class="section-desc">A live snapshot of what's moving right now: current build, what I'm learning, and the stack in daily use.</p>
+      </div>
+      <span class="updated mono">UPDATED SEP 2026</span>
+    </div>
+
+    <div class="now-grid">
+      <div class="now-card">
+        <div class="tag">Building</div>
+        <h3>An AI-generated Malayalam nursery rhyme series</h3>
+        <p>End-to-end pipeline — consistent character design, image-to-video generation, native singing audio, all stitched into short-form video.</p>
+      </div>
+      <div class="now-card">
+        <div class="tag">Learning</div>
+        <h3>Prompt-level control over video model consistency</h3>
+        <p>Working out reference-image techniques to hold character identity, lighting, and framing steady across separate generations.</p>
+      </div>
+    </div>
+
+    <div class="now-grid three">
+      <div class="now-card">
+        <div class="tag">Stack</div>
+        <h3>Python · OpenCV</h3>
+        <p>Daily driver for detection and tracking work.</p>
+      </div>
+      <div class="now-card">
+        <div class="tag">Tools</div>
+        <h3>YOLO · MediaPipe</h3>
+        <p>Go-to for real-time vision tasks.</p>
+      </div>
+      <div class="now-card">
+        <div class="tag">Focus</div>
+        <h3>Edge-ready inference</h3>
+        <p>Making models run fast on modest hardware.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="work">
+    <div class="section-top">
+      <div>
+        <div class="eyebrow">02 / Work · Selected</div>
+        <p class="section-desc">Nine systems that see, track, and respond — built end to end from model to interface.</p>
+      </div>
+    </div>
+
+    <div class="work-list">
+
+      <div class="work-card">
+        <div class="work-index mono">01</div>
+        <div>
+          <h3>Object Detection</h3>
+          <p>Real-time detection and classification of objects in video streams, tuned to run at usable speed on limited hardware.</p>
+          <div class="tags"><span>YOLOv8</span><span>OpenCV</span><span>Python</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+      <div class="work-card">
+        <div class="work-index mono">02</div>
+        <div>
+          <h3>License Plate Recognition</h3>
+          <p>Automatic number-plate detection and OCR pipeline that reads plates from live camera feeds, built for gate access and traffic monitoring.</p>
+          <div class="tags"><span>YOLO</span><span>OCR</span><span>OpenCV</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+      <div class="work-card">
+        <div class="work-index mono">03</div>
+        <div>
+          <h3>AI Chatbot</h3>
+          <p>A conversational assistant built on LLM APIs with custom retrieval and memory, designed to answer domain-specific questions accurately.</p>
+          <div class="tags"><span>LLM API</span><span>RAG</span><span>Python</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+      <div class="work-card">
+        <div class="work-index mono">04</div>
+        <div>
+          <h3>Face Recognition</h3>
+          <p>Face detection and identity-matching system for access control, using embedding-based recognition for fast, accurate lookups.</p>
+          <div class="tags"><span>FaceNet</span><span>OpenCV</span><span>Python</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+      <div class="work-card">
+        <div class="work-index mono">05</div>
+        <div>
+          <h3>Video Generation</h3>
+          <p>An AI pipeline combining character-consistent image generation with video and audio synthesis to produce short animated content.</p>
+          <div class="tags"><span>Image-to-Video</span><span>Prompt Design</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+      <div class="work-card">
+        <div class="work-index mono">06</div>
+        <div>
+          <h3>Person Tracking</h3>
+          <p>Multi-camera person tracking that follows individuals across frames and camera handoffs using re-identification models.</p>
+          <div class="tags"><span>DeepSORT</span><span>Re-ID</span><span>OpenCV</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+      <div class="work-card">
+        <div class="work-index mono">07</div>
+        <div>
+          <h3>Floor Map Tracking</h3>
+          <p>Indoor positioning system that projects detected people onto a 2D floor plan in real time for space and movement analytics.</p>
+          <div class="tags"><span>Homography</span><span>OpenCV</span><span>Python</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+      <div class="work-card">
+        <div class="work-index mono">08</div>
+        <div>
+          <h3>Locate Objects</h3>
+          <p>A vision system that finds and localizes a specific object within a scene on request, built for inventory and search-style tasks.</p>
+          <div class="tags"><span>Object Localization</span><span>Python</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+      <div class="work-card">
+        <div class="work-index mono">09</div>
+        <div>
+          <h3>Posture Detection</h3>
+          <p>Pose-estimation based system that analyzes body posture in real time and flags incorrect form or ergonomic risk.</p>
+          <div class="tags"><span>MediaPipe</span><span>Pose Estimation</span></div>
+        </div>
+        <a class="work-link" href="#">View on GitHub →</a>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section" id="contact">
+    <div class="contact-block">
+      <h2>Bring me the hard problem.</h2>
+      <p>Open to conversations about computer vision, AI systems, and anything that doesn't have an obvious solution yet. I read every message.</p>
+      <a class="cta" href="mailto:vishnuvsdevtech@gmail.com">Get in touch →</a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="f-label">Vishnu Surendran</div>
+        <a href="mailto:vishnuvsdevtech@gmail.com">vishnuvsdevtech@gmail.com</a>
+      </div>
+      <div class="footer-col">
+        <div class="f-label">Work</div>
+        <a href="#work">Object Detection</a>
+        <a href="#work">Face Recognition</a>
+        <a href="#work">Video Generation</a>
+      </div>
+      <div class="footer-col">
+        <div class="f-label">Elsewhere</div>
+        <a href="https://github.com/cosmodrop" target="_blank" rel="noopener">GitHub ↗</a>
+        <a href="https://www.linkedin.com/in/vishnu-surendran-375278170" target="_blank" rel="noopener">LinkedIn ↗</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Vishnu Surendran</span>
+      <span>Built in Kerala. Computer vision and code.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function updateClock(){
+    var el = document.getElementById('clock');
+    var now = new Date();
+    var istOffset = 5.5 * 60 * 60000;
+    var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    var ist = new Date(utc + istOffset);
+    var h = ist.getHours().toString().padStart(2,'0');
+    var m = ist.getMinutes().toString().padStart(2,'0');
+    el.textContent = 'KOCHI · ' + h + ':' + m + ' IST';
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+</script>
+
+</body>
+</html>
