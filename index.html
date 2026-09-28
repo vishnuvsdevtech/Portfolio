@@ -1,574 +1,452 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vishnu Surendran — AI & Computer Vision Engineer</title>
+<meta name="description" content="Vishnu Surendran builds computer vision and generative AI systems — real-time detection, tracking and AI video pipelines — shipped as working software.">
+<meta name="theme-color" content="#0b0b0a">
+<meta property="og:title" content="Vishnu Surendran — AI & Computer Vision Engineer">
+<meta property="og:description" content="Detect. Track. Generate. Computer vision and generative AI systems, shipped as working software.">
+<meta property="og:image" content="photo.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0b0a'/%3E%3Cpath d='M8 12V8h4M20 8h4v4M24 20v4h-4M12 24H8v-4' stroke='%23ff6a3d' stroke-width='2.4' fill='none'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23f2eee6'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#F3EFE6;
-    --card:#FAF8F2;
-    --ink:#1A1815;
-    --muted:#84807A;
-    --line:#E1DBCC;
-    --accent:#B85C39;
-    --accent-soft:#F1E2D8;
-    --radius:8px;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:'Inter',system-ui,sans-serif;
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-  }
-  ::selection{background:var(--accent-soft); color:var(--accent);}
-  a{color:inherit; text-decoration:none;}
-  .wrap{max-width:1120px; margin:0 auto; padding:0 32px;}
-  .mono{font-family:'IBM Plex Mono', monospace;}
-
-  /* ---------- Header ---------- */
-  header{
-    border-bottom:1px solid var(--line);
-  }
-  header .wrap{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:20px 32px;
-    gap:20px; flex-wrap:wrap;
-  }
-  .id-block{ display:flex; align-items:center; gap:12px; }
-  .avatar{
-    width:38px; height:38px; border-radius:50%;
-    background:var(--card) center/cover no-repeat url('photo.jpg');
-    border:1px solid var(--line);
-    flex-shrink:0;
-  }
-  .id-text strong{
-    display:block; font-family:'Space Grotesk', sans-serif;
-    font-weight:600; font-size:14.5px;
-  }
-  .id-text small{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:10.5px; letter-spacing:0.03em; color:var(--muted);
-  }
-
-  nav{ display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
-  nav a.nav-link{ font-size:13.5px; color:var(--muted); }
-  nav a.nav-link.active{ color:var(--accent); }
-  nav a.nav-link:hover{ color:var(--ink); }
-
-  .header-right{ display:flex; align-items:center; gap:14px; }
-  .loc-time{
-    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted);
-    letter-spacing:0.03em; white-space:nowrap;
-  }
-  .search-pill{
-    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted);
-    border:1px solid var(--line); border-radius:6px; padding:5px 9px;
-  }
-  .cta{
-    font-family:'Inter',sans-serif; font-weight:500;
-    font-size:13.5px;
-    background:var(--ink); color:var(--bg);
-    padding:9px 16px; border-radius:6px;
-    white-space:nowrap;
-  }
-  .cta:hover{ opacity:0.85; }
-
-  /* ---------- Hero ---------- */
-  .hero{ padding:60px 0 50px; position:relative; overflow:hidden; }
-  #paintCanvas{
-    position:absolute; inset:0; width:100%; height:100%;
-    z-index:0; pointer-events:none;
-  }
-  .hero > .status, .hero > .hero-grid{ position:relative; z-index:1; }
-  .status{
-    display:inline-flex; align-items:center; gap:9px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px; letter-spacing:0.03em; color:var(--muted);
-    margin-bottom:28px; text-transform:uppercase;
-  }
-  .status .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
-
-  .hero-grid{
-    display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:start;
-  }
-  @media (max-width:760px){ .hero-grid{grid-template-columns:1fr;} }
-
-  h1.headline{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:700;
-    font-size:clamp(46px, 7vw, 74px);
-    line-height:1.0;
-    letter-spacing:-0.02em;
-    margin:0 0 26px;
-  }
-  h1.headline span{ display:block; }
-  h1.headline .accent{ color:var(--accent); }
-
-  .hero-sub{ color:var(--muted); font-size:16px; max-width:440px; margin:0 0 30px; }
-
-  .hero-photo{
-    display:flex; flex-direction:column; align-items:flex-end; gap:36px;
-  }
-  .photo-frame{
-    width:100%; max-width:320px; aspect-ratio:4/4.6;
-    border-radius:var(--radius);
-    background:var(--card) center/cover no-repeat url('photo.jpg');
-    border:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center;
-    color:var(--muted); font-family:'IBM Plex Mono', monospace; font-size:12px;
-    text-align:center; padding:12px;
-  }
-  .stats{ display:flex; gap:40px; align-self:flex-start; }
-  .stat .num{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:26px; }
-  .stat .label{
-    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.03em;
-    color:var(--muted); margin-top:4px; text-transform:uppercase;
-  }
-
-  /* ---------- Section shared ---------- */
-  .section{ padding:56px 0; border-top:1px solid var(--line); }
-  .section-top{
-    display:flex; justify-content:space-between; align-items:flex-start;
-    flex-wrap:wrap; gap:16px; margin-bottom:36px;
-  }
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.03em;
-    color:var(--muted); text-transform:uppercase; margin-bottom:14px;
-  }
-  .section-desc{ max-width:560px; color:var(--muted); font-size:15px; }
-  .updated{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted); white-space:nowrap; }
-
-  /* ---------- Now cards ---------- */
-  .now-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
-  .now-grid.three{ grid-template-columns:1fr 1fr 1fr; }
-  @media (max-width:680px){ .now-grid, .now-grid.three{ grid-template-columns:1fr; } }
-  .now-card{
-    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-    padding:22px 22px 20px;
-  }
-  .now-card .tag{
-    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.04em;
-    color:var(--muted); text-transform:uppercase; margin-bottom:12px;
-  }
-  .now-card h3{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; margin:0 0 10px; }
-  .now-card p{ font-size:13.5px; color:var(--muted); margin:0; }
-
-  /* ---------- Work cards ---------- */
-  .work-list{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media (max-width:760px){ .work-list{ grid-template-columns:1fr; } }
-  .work-card{
-    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-    padding:24px 26px;
-    display:flex; flex-direction:column; align-items:flex-start; gap:0;
-  }
-  .work-index{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--muted); margin-bottom:12px; }
-  .work-card h3{ font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:0 0 8px; }
-  .work-card p{ margin:0 0 16px; color:var(--muted); font-size:14px; }
-  .tags{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px; }
-  .tags span{
-    font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--accent);
-    background:var(--accent-soft); padding:3px 9px; border-radius:20px;
-  }
-  .work-link{
-    font-family:'IBM Plex Mono', monospace; font-size:12px;
-    border-bottom:1px solid var(--line); padding-bottom:2px; white-space:nowrap;
-  }
-  .work-link:hover{ border-color:var(--accent); color:var(--accent); }
-
-  /* ---------- Contact ---------- */
-  .contact-block{
-    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-    padding:52px 44px;
-  }
-  .contact-block h2{
-    font-family:'Space Grotesk', sans-serif; font-size:30px; font-weight:600;
-    margin:0 0 14px; max-width:480px; letter-spacing:-0.01em;
-  }
-  .contact-block p{ color:var(--muted); max-width:440px; margin:0 0 26px; }
-
-  /* ---------- Footer ---------- */
-  footer{ border-top:1px solid var(--line); padding:48px 0 40px; }
-  .footer-grid{ display:grid; grid-template-columns:2fr 1fr 1fr; gap:40px; margin-bottom:40px; }
-  @media (max-width:680px){ .footer-grid{grid-template-columns:1fr; gap:26px;} }
-  .footer-col .f-label{
-    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.03em;
-    color:var(--muted); margin-bottom:14px; text-transform:uppercase;
-  }
-  .footer-col a{ display:block; font-size:14px; margin-bottom:9px; }
-  .footer-col a:hover{ color:var(--accent); }
-  .footer-bottom{
-    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
-    border-top:1px solid var(--line); padding-top:22px;
-    font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--muted);
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/img/portrait.jpg">
+<link rel="stylesheet" href="assets/css/style.css?v=7">
+<script>
+  // Theme + preloader decisions before first paint (no flash)
+  (function(){
+    var d=document.documentElement;
+    try{ var t=localStorage.getItem('vs-theme'); if(t) d.setAttribute('data-theme',t); }catch(e){}
+    var seen=false; try{ seen=sessionStorage.getItem('vs-booted')==='1'; }catch(e){}
+    if(seen || matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('no-boot');
+    d.classList.add('js');
+  })();
+</script>
 </head>
 <body>
 
-<header>
-  <div class="wrap">
-    <div class="id-block">
-      <div class="avatar"></div>
-      <div class="id-text">
-        <strong>Vishnu Surendran</strong>
-        <small>AI ENGINEER · CV</small>
-      </div>
-    </div>
-    <nav>
-      <a class="nav-link active" href="#top">Home</a>
-      <a class="nav-link" href="#work">Work</a>
-      <a class="nav-link" href="#now">Now</a>
-      <a class="nav-link" href="#contact">Contact</a>
-    </nav>
-    <div class="header-right">
-      <span class="loc-time mono" id="clock">KOCHI · —:—</span>
-      <span class="search-pill">⌕ ⌘K</span>
-      <a class="cta" href="#contact">Get in touch →</a>
-    </div>
+<!-- Boot sequence -->
+<div class="boot" id="boot" aria-hidden="true">
+  <div class="boot-frame">
+    <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+    <div class="boot-count"><span id="bootNum">00</span><small>%</small></div>
+  </div>
+  <div class="boot-log mono" id="bootLog">loading weights…</div>
+</div>
+
+<!-- Detector cursor -->
+<div class="det-cursor" id="detCursor" aria-hidden="true">
+  <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+  <span class="det-label mono" id="detLabel">cursor · 1.00</span>
+</div>
+<div class="det-dot" id="detDot" aria-hidden="true"></div>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- Header -->
+<header class="top" id="top">
+  <a class="brand" href="#hero" data-cursor="home">
+    <span class="avatar"></span>
+    <span class="brand-text">
+      <strong>Vishnu Surendran</strong>
+      <small class="mono">AI ENGINEER · CV</small>
+    </span>
+  </a>
+
+  <nav class="nav" id="nav" aria-label="Primary">
+    <span class="nav-pill" id="navPill" aria-hidden="true"></span>
+    <a class="nav-link" href="#hero" data-sec="hero">Home</a>
+    <a class="nav-link" href="#work" data-sec="work">Work</a>
+    <a class="nav-link" href="#now" data-sec="now">Now</a>
+    <a class="nav-link" href="#contact" data-sec="contact">Contact</a>
+  </nav>
+
+  <div class="top-right">
+    <span class="clock mono" id="clock">KOCHI · --:--</span>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle theme" data-cursor="theme">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg>
+    </button>
+    <button class="kbd-btn mono" id="cmdBtn" aria-label="Open command menu" data-cursor="command">
+      <span>⌘</span><span>K</span>
+    </button>
+    <a class="btn btn-solid btn-sm magnetic" href="#contact"><span>Get in touch</span><i>→</i></a>
   </div>
 </header>
 
-<div class="wrap" id="top">
+<main>
 
-  <section class="hero">
-    <canvas id="paintCanvas"></canvas>
-    <div class="status"><span class="dot"></span>Open to interesting AI &amp; vision problems</div>
+<!-- ============ HERO ============ -->
+<section class="hero" id="hero">
+  <canvas class="flow" id="flow" aria-hidden="true"></canvas>
+  <div class="hero-vignette" aria-hidden="true"></div>
 
-    <div class="hero-grid">
-      <div>
-        <h1 class="headline"><span>Detect.</span><span>Track.</span><span class="accent">Generate.</span></h1>
-        <p class="hero-sub">I build computer vision and generative AI systems — from real-time object detection to AI-driven video pipelines — and ship them as working software, not demos.</p>
-        <a class="cta" href="#contact">Get in touch →</a>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="status mono reveal">
+        <span class="pulse"></span>
+        Open to interesting AI &amp; vision problems
       </div>
 
-      <div class="hero-photo">
-        <div class="photo-frame"></div>
-        <div class="stats">
-          <div class="stat"><div class="num">09</div><div class="label">Projects shipped</div></div>
-          <div class="stat"><div class="num">05+</div><div class="label">AI/CV domains</div></div>
+      <h1 class="headline" aria-label="Detect. Track. Generate.">
+        <span class="line"><span class="word w-detect" id="wDetect">Detect.
+          <span class="bbox" aria-hidden="true"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span><em class="mono">word · 0.99</em></span>
+        </span></span>
+        <span class="line"><span class="word w-track">Track<span class="track-dot" aria-hidden="true"><span class="c tl"></span><span class="c br"></span></span></span></span>
+        <span class="line"><span class="word w-gen serif">Generate.</span></span>
+      </h1>
+
+      <p class="hero-sub reveal">I build computer vision and generative AI systems — from real-time object detection to AI-driven video pipelines — and ship them as <em class="serif">working software</em>, not demos.</p>
+
+      <div class="hero-ctas reveal">
+        <a class="btn btn-solid magnetic" href="#contact"><span>Get in touch</span><i>→</i></a>
+        <a class="btn btn-ghost magnetic" href="#work"><span>See the work</span><i>↓</i></a>
+      </div>
+    </div>
+
+    <div class="hero-visual reveal">
+      <div class="scan-card" id="scanCard" data-cursor="face">
+        <div class="scan-img"></div>
+        <div class="scan-grid" aria-hidden="true"></div>
+        <div class="scan-line" aria-hidden="true"></div>
+        <div class="face-box" aria-hidden="true">
+          <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+          <em class="mono">vishnu · <b id="confVal">0.997</b></em>
+        </div>
+        <svg class="landmarks" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <g class="lm-lines">
+            <path d="M40 35 L48 42.5 L55.5 35"/>
+            <path d="M40 50 L48 49.5 L57 50"/>
+            <path d="M30 44 L40 35 M66 44 L55.5 35"/>
+            <path d="M30 44 L35 56 L48 61 L62 56 L66 44"/>
+          </g>
+          <g class="lm-pts">
+            <circle cx="40" cy="35" r=".9"/><circle cx="55.5" cy="35" r=".9"/>
+            <circle cx="48" cy="42.5" r=".9"/><circle cx="40" cy="50" r=".9"/>
+            <circle cx="57" cy="50" r=".9"/><circle cx="48" cy="49.5" r=".9"/>
+            <circle cx="30" cy="44" r=".7"/><circle cx="66" cy="44" r=".7"/>
+            <circle cx="35" cy="56" r=".7"/><circle cx="62" cy="56" r=".7"/><circle cx="48" cy="61" r=".9"/>
+          </g>
+        </svg>
+        <div class="hud hud-top mono" aria-hidden="true"><span>CAM_01</span><span class="rec"><i></i>LIVE</span></div>
+        <div class="hud hud-bot mono" aria-hidden="true">
+          <span>FPS <b id="fpsVal">60</b></span><span>LAT <b id="latVal">12</b>ms</span><span>ID <b>#0001</b></span>
         </div>
       </div>
-    </div>
-  </section>
 
-  <section class="section" id="now">
-    <div class="section-top">
+      <div class="stats">
+        <div class="stat"><div class="num"><span data-count="9" data-pad="2">00</span></div><div class="label mono">Projects shipped</div></div>
+        <div class="stat"><div class="num"><span data-count="5" data-pad="2">00</span><sup>+</sup></div><div class="label mono">AI / CV domains</div></div>
+        <div class="stat"><div class="num">IST</div><div class="label mono">Kochi, Kerala</div></div>
+      </div>
+    </div>
+  </div>
+
+  <a class="scroll-cue mono" href="#stack" aria-label="Scroll down"><span>Scroll</span><i></i></a>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee" id="stack" aria-label="Tools I use">
+  <div class="marquee-track">
+    <div class="marquee-group">
+      <span>Python</span><b>✦</b><span>OpenCV</span><b>✦</b><span class="serif">YOLOv8</span><b>✦</b><span>MediaPipe</span><b>✦</b><span>DeepSORT</span><b>✦</b><span class="serif">FaceNet</span><b>✦</b><span>RAG</span><b>✦</b><span>LLM APIs</span><b>✦</b><span class="serif">Pose Estimation</span><b>✦</b><span>OCR</span><b>✦</b><span>Homography</span><b>✦</b><span class="serif">Image-to-Video</span><b>✦</b>
+    </div>
+    <div class="marquee-group" aria-hidden="true">
+      <span>Python</span><b>✦</b><span>OpenCV</span><b>✦</b><span class="serif">YOLOv8</span><b>✦</b><span>MediaPipe</span><b>✦</b><span>DeepSORT</span><b>✦</b><span class="serif">FaceNet</span><b>✦</b><span>RAG</span><b>✦</b><span>LLM APIs</span><b>✦</b><span class="serif">Pose Estimation</span><b>✦</b><span>OCR</span><b>✦</b><span>Homography</span><b>✦</b><span class="serif">Image-to-Video</span><b>✦</b>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WORK ============ -->
+<section class="section" id="work">
+  <div class="wrap">
+    <div class="sec-head">
       <div>
-        <div class="eyebrow">01 / Now · Currently</div>
-        <p class="section-desc">A live snapshot of what's moving right now: current build, what I'm learning, and the stack in daily use.</p>
+        <div class="eyebrow mono reveal"><span>01</span> / Work · Selected</div>
+        <h2 class="sec-title reveal">Nine systems that <span class="serif">see, track</span> and respond.</h2>
       </div>
-      <span class="updated mono">UPDATED SEP 2026</span>
+      <p class="sec-desc reveal">Built end to end, from model to interface. Each tile runs a small live sketch of what the system does.</p>
     </div>
 
-    <div class="now-grid">
-      <div class="now-card">
-        <div class="tag">Building</div>
-        <h3>An AI-generated Malayalam nursery rhyme series</h3>
-        <p>End-to-end pipeline — consistent character design, image-to-video generation, native singing audio, all stitched into short-form video.</p>
-      </div>
-      <div class="now-card">
-        <div class="tag">Learning</div>
-        <h3>Prompt-level control over video model consistency</h3>
-        <p>Working out reference-image techniques to hold character identity, lighting, and framing steady across separate generations.</p>
-      </div>
+    <div class="filters reveal" role="toolbar" aria-label="Filter projects">
+      <span class="filter-q mono">query:</span>
+      <button class="chip is-on" data-filter="all">All</button>
+      <button class="chip" data-filter="detect">Detection</button>
+      <button class="chip" data-filter="recog">Recognition</button>
+      <button class="chip" data-filter="track">Tracking</button>
+      <button class="chip" data-filter="gen">Generative</button>
+      <span class="filter-count mono" id="filterCount">9 matches</span>
     </div>
 
-    <div class="now-grid three">
-      <div class="now-card">
-        <div class="tag">Stack</div>
-        <h3>Python · OpenCV</h3>
-        <p>Daily driver for detection and tracking work.</p>
-      </div>
-      <div class="now-card">
-        <div class="tag">Tools</div>
-        <h3>YOLO · MediaPipe</h3>
-        <p>Go-to for real-time vision tasks.</p>
-      </div>
-      <div class="now-card">
-        <div class="tag">Focus</div>
-        <h3>Edge-ready inference</h3>
-        <p>Making models run fast on modest hardware.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="work">
-    <div class="section-top">
-      <div>
-        <div class="eyebrow">02 / Work · Selected</div>
-        <p class="section-desc">Nine systems that see, track, and respond — built end to end from model to interface.</p>
-      </div>
-    </div>
-
-    <div class="work-list">
-
-      <div class="work-card">
-        <div class="work-index mono">01</div>
-        <div>
+    <div class="bento" id="bento">
+      <article class="card work s7 reveal" data-cat="detect" data-cursor="project">
+        <div class="viz"><canvas data-viz="detect"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>01</span><span>Detection</span></div>
           <h3>Object Detection</h3>
           <p>Real-time detection and classification of objects in video streams, tuned to run at usable speed on limited hardware.</p>
           <div class="tags"><span>YOLOv8</span><span>OpenCV</span><span>Python</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
+      </article>
 
-      <div class="work-card">
-        <div class="work-index mono">02</div>
-        <div>
+      <article class="card work s5 reveal" data-cat="detect recog" data-cursor="project">
+        <div class="viz"><canvas data-viz="plate"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>02</span><span>Detection · OCR</span></div>
           <h3>License Plate Recognition</h3>
-          <p>Automatic number-plate detection and OCR pipeline that reads plates from live camera feeds, built for gate access and traffic monitoring.</p>
+          <p>Number-plate detection and OCR pipeline that reads plates from live camera feeds, built for gate access and traffic monitoring.</p>
           <div class="tags"><span>YOLO</span><span>OCR</span><span>OpenCV</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
+      </article>
 
-      <div class="work-card">
-        <div class="work-index mono">03</div>
-        <div>
+      <article class="card work s4 reveal" data-cat="gen" data-cursor="project">
+        <div class="viz"><canvas data-viz="chat"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>03</span><span>LLM · RAG</span></div>
           <h3>AI Chatbot</h3>
-          <p>A conversational assistant built on LLM APIs with custom retrieval and memory, designed to answer domain-specific questions accurately.</p>
+          <p>A conversational assistant on LLM APIs with custom retrieval and memory, built to answer domain-specific questions accurately.</p>
           <div class="tags"><span>LLM API</span><span>RAG</span><span>Python</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
+      </article>
 
-      <div class="work-card">
-        <div class="work-index mono">04</div>
-        <div>
+      <article class="card work s4 reveal" data-cat="recog" data-cursor="project">
+        <div class="viz"><canvas data-viz="face"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>04</span><span>Recognition</span></div>
           <h3>Face Recognition</h3>
-          <p>Face detection and identity-matching system for access control, using embedding-based recognition for fast, accurate lookups.</p>
+          <p>Face detection and identity matching for access control, using embedding-based recognition for fast, accurate lookups.</p>
           <div class="tags"><span>FaceNet</span><span>OpenCV</span><span>Python</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
+      </article>
 
-      <div class="work-card">
-        <div class="work-index mono">05</div>
-        <div>
+      <article class="card work s4 reveal" data-cat="gen" data-cursor="project">
+        <div class="viz"><canvas data-viz="video"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>05</span><span>Generative</span></div>
           <h3>Video Generation</h3>
-          <p>An AI pipeline combining character-consistent image generation with video and audio synthesis to produce short animated content.</p>
+          <p>A pipeline combining character-consistent image generation with video and audio synthesis to produce short animated content.</p>
           <div class="tags"><span>Image-to-Video</span><span>Prompt Design</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
+      </article>
 
-      <div class="work-card">
-        <div class="work-index mono">06</div>
-        <div>
+      <article class="card work s5 reveal" data-cat="track recog" data-cursor="project">
+        <div class="viz"><canvas data-viz="people"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>06</span><span>Tracking · Re-ID</span></div>
           <h3>Person Tracking</h3>
-          <p>Multi-camera person tracking that follows individuals across frames and camera handoffs using re-identification models.</p>
+          <p>Multi-camera tracking that follows individuals across frames and camera handoffs using re-identification models.</p>
           <div class="tags"><span>DeepSORT</span><span>Re-ID</span><span>OpenCV</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
+      </article>
 
-      <div class="work-card">
-        <div class="work-index mono">07</div>
-        <div>
+      <article class="card work s7 reveal" data-cat="track" data-cursor="project">
+        <div class="viz"><canvas data-viz="floor"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>07</span><span>Tracking · Spatial</span></div>
           <h3>Floor Map Tracking</h3>
-          <p>Indoor positioning system that projects detected people onto a 2D floor plan in real time for space and movement analytics.</p>
+          <p>Indoor positioning that projects detected people onto a 2D floor plan in real time for space and movement analytics.</p>
           <div class="tags"><span>Homography</span><span>OpenCV</span><span>Python</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
+      </article>
 
-      <div class="work-card">
-        <div class="work-index mono">08</div>
-        <div>
+      <article class="card work s6 reveal" data-cat="detect" data-cursor="project">
+        <div class="viz"><canvas data-viz="locate"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>08</span><span>Localization</span></div>
           <h3>Locate Objects</h3>
-          <p>A vision system that finds and localizes a specific object within a scene on request, built for inventory and search-style tasks.</p>
+          <p>Finds and localizes a specific object within a scene on request, built for inventory and search-style tasks.</p>
           <div class="tags"><span>Object Localization</span><span>Python</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
+      </article>
 
-      <div class="work-card">
-        <div class="work-index mono">09</div>
-        <div>
+      <article class="card work s6 reveal" data-cat="track" data-cursor="project">
+        <div class="viz"><canvas data-viz="pose"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>09</span><span>Pose</span></div>
           <h3>Posture Detection</h3>
-          <p>Pose-estimation based system that analyzes body posture in real time and flags incorrect form or ergonomic risk.</p>
+          <p>Pose estimation that analyzes body posture in real time and flags incorrect form or ergonomic risk.</p>
           <div class="tags"><span>MediaPipe</span><span>Pose Estimation</span></div>
+          <a class="card-link mono" href="https://github.com/cosmodrop" target="_blank" rel="noopener">View on GitHub <i>↗</i></a>
         </div>
-        <a class="work-link" href="#">View on GitHub →</a>
-      </div>
-
+      </article>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="section" id="contact">
-    <div class="contact-block">
-      <h2>Bring me the hard problem.</h2>
-      <p>Open to conversations about computer vision, AI systems, and anything that doesn't have an obvious solution yet. I read every message.</p>
-      <a class="cta" href="mailto:vishnuvsdevtech@gmail.com">Get in touch →</a>
-    </div>
-  </section>
-
-</div>
-
-<footer>
+<!-- ============ PROCESS ============ -->
+<section class="section process" id="process">
   <div class="wrap">
-    <div class="footer-grid">
-      <div class="footer-col">
-        <div class="f-label">Vishnu Surendran</div>
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow mono reveal"><span>02</span> / Process</div>
+        <h2 class="sec-title reveal">From <span class="serif">pixels</span> to product.</h2>
+      </div>
+      <p class="sec-desc reveal">A demo works once. A system works every time, on real cameras and modest hardware. That's the part I care about.</p>
+    </div>
+
+    <div class="pipeline" id="pipeline">
+      <svg class="pipe-line" viewBox="0 0 1000 4" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="2" x2="1000" y2="2"/><line class="pipe-fill" x1="0" y1="2" x2="1000" y2="2"/></svg>
+      <div class="step reveal">
+        <div class="step-node mono">01</div>
+        <h3>See</h3>
+        <p>Frame the problem through the camera: what has to be found, how fast, in what light, and what failure costs.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-node mono">02</div>
+        <h3>Model</h3>
+        <p>Pick, train and tune the right model: detectors, trackers, embeddings or generators, tested against messy real footage.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-node mono">03</div>
+        <h3>Ship</h3>
+        <p>Optimize for edge-ready inference and wrap it in software people can use, then keep it running.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NOW ============ -->
+<section class="section" id="now">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow mono reveal"><span>03</span> / Now · Currently</div>
+        <h2 class="sec-title reveal">What's <span class="serif">moving</span> right now.</h2>
+      </div>
+      <span class="updated mono reveal"><span class="pulse"></span>UPDATED SEP 2026</span>
+    </div>
+
+    <div class="now-bento">
+      <article class="card now n-build reveal">
+        <div class="tag mono"><span class="pulse"></span>Building</div>
+        <h3>An AI-generated Malayalam nursery rhyme series</h3>
+        <p>End-to-end pipeline: consistent character design, image-to-video generation, native singing audio, all stitched into short-form video.</p>
+        <div class="flow-steps mono" aria-label="Pipeline stages">
+          <span>Character</span><i></i><span>Image</span><i></i><span>Video</span><i></i><span>Audio</span><i></i><span>Edit</span>
+        </div>
+      </article>
+
+      <article class="card now n-learn reveal">
+        <div class="tag mono">Learning</div>
+        <h3>Prompt-level control over video model consistency</h3>
+        <p>Working out reference-image techniques to hold character identity, lighting and framing steady across separate generations.</p>
+        <div class="consistency" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      </article>
+
+      <article class="card now n-sm reveal">
+        <div class="tag mono">Stack</div>
+        <h3>Python · OpenCV</h3>
+        <p>Daily driver for detection and tracking work.</p>
+      </article>
+      <article class="card now n-sm reveal">
+        <div class="tag mono">Tools</div>
+        <h3>YOLO · MediaPipe</h3>
+        <p>Go-to for real-time vision tasks.</p>
+      </article>
+      <article class="card now n-sm reveal">
+        <div class="tag mono">Focus</div>
+        <h3>Edge-ready inference</h3>
+        <p>Making models run fast on modest hardware.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="section contact" id="contact">
+  <div class="contact-glow" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="eyebrow mono reveal"><span>04</span> / Contact</div>
+    <h2 class="big-title" id="bigTitle">Bring me the <span class="serif accent">hard</span> problem.</h2>
+    <div class="contact-row">
+      <p class="reveal">Open to conversations about computer vision, AI systems, and anything that doesn't have an obvious solution yet. I read every message.</p>
+      <div class="contact-actions reveal">
+        <a class="btn btn-solid btn-lg magnetic" href="mailto:vishnuvsdevtech@gmail.com"><span>Get in touch</span><i>→</i></a>
+        <button class="email-copy mono" id="copyEmail" data-cursor="copy">
+          <span>vishnuvsdevtech@gmail.com</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col">
+        <div class="f-label mono">Vishnu Surendran</div>
         <a href="mailto:vishnuvsdevtech@gmail.com">vishnuvsdevtech@gmail.com</a>
       </div>
-      <div class="footer-col">
-        <div class="f-label">Work</div>
+      <div class="foot-col">
+        <div class="f-label mono">Work</div>
         <a href="#work">Object Detection</a>
         <a href="#work">Face Recognition</a>
         <a href="#work">Video Generation</a>
       </div>
-      <div class="footer-col">
-        <div class="f-label">Elsewhere</div>
+      <div class="foot-col">
+        <div class="f-label mono">Elsewhere</div>
         <a href="https://github.com/cosmodrop" target="_blank" rel="noopener">GitHub ↗</a>
         <a href="https://www.linkedin.com/in/vishnu-surendran-375278170" target="_blank" rel="noopener">LinkedIn ↗</a>
       </div>
     </div>
-    <div class="footer-bottom">
+
+    <div class="play reveal" id="play">
+      <div class="play-head">
+        <div>
+          <div class="eyebrow mono"><span>05</span> / Break · Play</div>
+          <h3 class="play-title">No internet <span class="serif">required.</span></h3>
+        </div>
+        <div class="play-keys mono">
+          <span class="key-only"><kbd>Space</kbd>/<kbd>↑</kbd> jump</span>
+          <span class="key-only"><kbd>↓</kbd> duck</span>
+          <span class="touch-only">Tap to jump</span>
+        </div>
+      </div>
+      <div class="dino" id="dino" tabindex="0" role="application" aria-label="Runner game. Press Space or tap to jump, Down arrow to duck.">
+        <canvas id="dinoCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="wordmark" aria-hidden="true"><span>Vishnu</span><span class="serif">Surendran</span></div>
+    <div class="foot-bottom mono">
       <span>© 2026 Vishnu Surendran</span>
       <span>Built in Kerala. Computer vision and code.</span>
+      <a href="#hero" class="to-top">Back to top ↑</a>
     </div>
   </div>
 </footer>
 
-<script>
-  function updateClock(){
-    var el = document.getElementById('clock');
-    var now = new Date();
-    var istOffset = 5.5 * 60 * 60000;
-    var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    var ist = new Date(utc + istOffset);
-    var h = ist.getHours().toString().padStart(2,'0');
-    var m = ist.getMinutes().toString().padStart(2,'0');
-    el.textContent = 'KOCHI · ' + h + ':' + m + ' IST';
-  }
-  updateClock();
-  setInterval(updateClock, 30000);
+<!-- Command palette -->
+<div class="cmdk" id="cmdk" role="dialog" aria-modal="true" aria-label="Command menu" hidden>
+  <div class="cmdk-backdrop" data-close></div>
+  <div class="cmdk-panel">
+    <div class="cmdk-input-row">
+      <span class="mono">⌕</span>
+      <input id="cmdkInput" type="text" placeholder="Type a command or search…" autocomplete="off" spellcheck="false">
+      <kbd class="mono">esc</kbd>
+    </div>
+    <ul class="cmdk-list" id="cmdkList" role="listbox"></ul>
+    <div class="cmdk-foot mono"><span>↑↓ navigate</span><span>↵ select</span></div>
+  </div>
+</div>
 
-  // ---------- Fluid paint-mixing cursor trail (hero section only) ----------
-  (function(){
-    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(reduceMotion) return;
+<div class="toast mono" id="toast" role="status" aria-live="polite"></div>
 
-    var hero = document.querySelector('.hero');
-    var canvas = document.getElementById('paintCanvas');
-    if(!hero || !canvas) return;
-    var ctx = canvas.getContext('2d');
-
-    var colors = ['#FFE600', '#39FF14', '#00E5FF', '#FF1053'];
-    var colorIndex = 0;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    var target = null;         // raw pointer position
-    var smoothed = null;       // lagged position -> gives the fluid/viscous feel
-    var dragDist = 0;
-    var blobs = [];
-    var frame = 0;
-
-    function resize(){
-      var rect = hero.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    function nextColor(){ colorIndex = (colorIndex+1) % colors.length; return colors[colorIndex]; }
-
-    hero.addEventListener('mouseenter', function(){
-      dragDist = 0;
-      nextColor(); // a fresh color each time a new drag/pass begins
-    });
-
-    hero.addEventListener('mousemove', function(e){
-      var rect = hero.getBoundingClientRect();
-      var p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-      if(target){
-        dragDist += Math.hypot(p.x-target.x, p.y-target.y);
-        if(dragDist > 220){ dragDist = 0; nextColor(); } // color evolves as you keep dragging
-      }
-      target = p;
-      if(!smoothed) smoothed = { x:p.x, y:p.y };
-    });
-
-    hero.addEventListener('mouseleave', function(){ target = null; });
-
-    function spawnBlob(x, y, color){
-      blobs.push({
-        x: x, y: y,
-        r: 6,
-        maxR: 60 + Math.random()*50,
-        age: 0,
-        life: 100 + Math.random()*50,  // long life = slow, oily fade
-        color: color,
-        peak: 0.55 + Math.random()*0.2
-      });
-      if(blobs.length > 90) blobs.shift();
-    }
-
-    function draw(){
-      frame++;
-      var w = canvas.width/dpr, h = canvas.height/dpr;
-      ctx.clearRect(0,0,w,h);
-
-      // move the "brush" toward the real cursor slowly -> thick, viscous lag
-      if(target && smoothed){
-        smoothed.x += (target.x - smoothed.x) * 0.10;
-        smoothed.y += (target.y - smoothed.y) * 0.10;
-        if(frame % 3 === 0){
-          spawnBlob(smoothed.x, smoothed.y, colors[colorIndex]);
-        }
-      }
-
-      ctx.globalCompositeOperation = 'source-over';
-      for(var i=blobs.length-1; i>=0; i--){
-        var b = blobs[i];
-        b.age++;
-        // ease radius outward -> slow spreading, like thick paint settling
-        b.r += (b.maxR - b.r) * 0.045;
-
-        var t = b.age / b.life;
-        var alpha;
-        if(t < 0.25) alpha = b.peak * (t/0.25);
-        else alpha = b.peak * (1 - (t-0.25)/0.75);
-        if(alpha < 0) alpha = 0;
-
-        if(t >= 1){ blobs.splice(i,1); continue; }
-
-        var grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-        grad.addColorStop(0, hexToRgba(b.color, alpha));
-        grad.addColorStop(0.7, hexToRgba(b.color, alpha*0.6));
-        grad.addColorStop(1, hexToRgba(b.color, 0));
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
-        ctx.fill();
-      }
-
-      requestAnimationFrame(draw);
-    }
-
-    function hexToRgba(hex, a){
-      var r = parseInt(hex.slice(1,3),16);
-      var g = parseInt(hex.slice(3,5),16);
-      var b = parseInt(hex.slice(5,7),16);
-      return 'rgba('+r+','+g+','+b+','+a+')';
-    }
-
-    requestAnimationFrame(draw);
-  })();
-</script>
-
+<script src="assets/js/main.js?v=7" defer></script>
 </body>
 </html>
