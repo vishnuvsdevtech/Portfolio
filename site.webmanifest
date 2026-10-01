@@ -1,0 +1,11 @@
+{
+  "name": "Vishnu Surendran — AI & Computer Vision Engineer",
+  "short_name": "Vishnu",
+  "icons": [
+    { "src": "assets/img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/img/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#0b0b0a",
+  "background_color": "#0b0b0a",
+  "display": "standalone"
+}

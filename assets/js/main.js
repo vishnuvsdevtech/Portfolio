@@ -1240,6 +1240,8 @@
     let state = 'roam', restUntil = 0, goal = null, anchor = null;
     let bulges = [], bits = [], pops = [];
     let tagX = -100, tagY = -100, hunted = false, last = 0, raf = 0;
+    const IDLE = 60000;                                   // no mouse movement for 1 min → snake sleeps
+    let lastMove = performance.now(), asleep = false;
 
     function resize() {
       W = innerWidth; H = innerHeight;
@@ -1404,6 +1406,12 @@
         [-1, 1].forEach(sg => ctx.fillRect(tx + dx * 4 - dy * 2 * sg - 1, ty + dy * 4 + dx * 2 * sg - 1, 2, 2));
       }
 
+      if (asleep) {                                         // a little z Z over the head
+        ctx.fillStyle = C.muted; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = '500 9px "Geist Mono", ui-monospace, Menlo, monospace'; ctx.fillText('z', hx - 9, hy - 9);
+        ctx.font = '500 12px "Geist Mono", ui-monospace, Menlo, monospace'; ctx.fillText('Z', hx - 17, hy - 19);
+      }
+
       // eat burst + floating "+1"
       bits.forEach(b => { ctx.fillStyle = rgba(C.accent, b.life); ctx.fillRect(b.x - b.s / 2, b.y - b.s / 2, b.s, b.s); });
       ctx.font = '500 11px "Geist Mono", ui-monospace, Menlo, monospace';
@@ -1412,7 +1420,7 @@
 
       // detection tag that trails the head
       if (hx > -20) {
-        const label = `snake · ${String(eaten).padStart(2, '0')} · ${WORD[state]}`;
+        const label = `snake · ${String(eaten).padStart(2, '0')} · ${asleep ? 'asleep' : WORD[state]}`;
         ctx.font = '500 10px "Geist Mono", ui-monospace, Menlo, monospace';
         const w = ctx.measureText(label).width + 20, h = 17;
         tagX = lerp(tagX < -50 ? hx : tagX, clamp(hx + 12, 4, W - w - 4), 0.12);
@@ -1425,7 +1433,16 @@
       }
     }
 
+    function sleep(now) {
+      asleep = true; cancelAnimationFrame(raf); raf = 0;     // freeze in place, no CPU while idle
+      hunted = false; dot.classList.remove('hunted');
+      bits = []; pops = [];
+      draw(now);
+    }
+    function wake() { asleep = false; if (enabled) start(); }
+
     function frame(now) {
+      if (now - lastMove > IDLE) { sleep(now); return; }
       raf = requestAnimationFrame(frame);
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       update(now, dt); draw(now);
@@ -1436,7 +1453,10 @@
       hunted = false; dot.classList.remove('hunted');
     }
 
-    addEventListener('pointermove', e => { fx = e.clientX; fy = e.clientY; present = true; }, { passive: true });
+    addEventListener('pointermove', e => {
+      fx = e.clientX; fy = e.clientY; present = true; lastMove = performance.now();
+      if (asleep) wake();
+    }, { passive: true });
     root.addEventListener('mouseleave', () => { present = false; });
     addEventListener('blur', () => { present = false; });
     addEventListener('resize', resize, { passive: true });
@@ -1447,7 +1467,7 @@
       toggle() {
         enabled = !enabled;
         try { localStorage.setItem('vs-snake', enabled ? 'on' : 'off'); } catch (e) {}
-        if (enabled) { spawn(); start(); } else stop();
+        if (enabled) { spawn(); lastMove = performance.now(); asleep = false; start(); } else stop();
         return enabled;
       },
     };
