@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/img/portrait.jpg">
-<link rel="stylesheet" href="assets/css/style.css?v=7">
+<link rel="stylesheet" href="assets/css/style.css?v=10">
 <script>
   // Theme + preloader decisions before first paint (no flash)
   (function(){
@@ -44,6 +44,7 @@
   <span class="det-label mono" id="detLabel">cursor · 1.00</span>
 </div>
 <div class="det-dot" id="detDot" aria-hidden="true"></div>
+<canvas class="snake" id="snake" aria-hidden="true"></canvas>
 
 <div class="progress" id="progress" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
@@ -409,7 +410,11 @@
       <div class="play-head">
         <div>
           <div class="eyebrow mono"><span>05</span> / Break · Play</div>
-          <h3 class="play-title">No internet <span class="serif">required.</span></h3>
+          <div class="scorecard mono" id="scorecard" aria-label="Runner scorecard">
+            <div class="sc"><span class="sc-l">Score</span><span class="sc-v" id="scNow">00000</span></div>
+            <div class="sc sc-best"><span class="sc-l">Best</span><span class="sc-v" id="scBest">00000</span></div>
+            <div class="sc"><span class="sc-l">Runs</span><span class="sc-v" id="scRuns">000</span></div>
+          </div>
         </div>
         <div class="play-keys mono">
           <span class="key-only"><kbd>Space</kbd>/<kbd>↑</kbd> jump</span>
@@ -447,6 +452,6 @@
 
 <div class="toast mono" id="toast" role="status" aria-live="polite"></div>
 
-<script src="assets/js/main.js?v=7" defer></script>
+<script src="assets/js/main.js?v=9" defer></script>
 </body>
 </html>

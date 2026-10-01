@@ -143,6 +143,23 @@ img,canvas,svg{display:block;}
   .det-dot.on{opacity:1;}
 }
 
+/* ---------- Cursor snake ---------- */
+.snake{display:none;}
+@media (hover:hover) and (pointer:fine){
+  .snake{display:block; position:fixed; top:0; left:0; z-index:140; pointer-events:none;}
+  .snake[hidden]{display:none;}
+  .det-dot::after{
+    content:""; position:absolute; inset:-7px; border-radius:50%;
+    border:1px solid var(--accent); opacity:0; transform:scale(.4);
+  }
+  .det-dot.hunted::after{animation:dotHunted .9s var(--ease-out) infinite;}
+  .det-dot.eaten{animation:dotEaten .7s var(--ease-out);}
+  .det-cursor.eaten{animation:boxEaten .7s linear;}
+}
+@keyframes dotHunted{from{opacity:.9; transform:scale(.4);} to{opacity:0; transform:scale(2.4);}}
+@keyframes dotEaten{0%{scale:1;} 12%{scale:0;} 72%{scale:0;} 86%{scale:2.4;} 100%{scale:1;}}
+@keyframes boxEaten{0%,45%{opacity:0;} 55%{opacity:1;} 65%{opacity:0;} 75%,100%{opacity:1;}}
+
 /* ---------- Header ---------- */
 .top{
   position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:100;
@@ -555,8 +572,18 @@ img,canvas,svg{display:block;}
 .play{margin-top:72px;}
 .play-head{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px;}
 .play .eyebrow{margin-bottom:12px;}
-.play-title{font-size:clamp(26px,3.2vw,40px); font-weight:500; letter-spacing:-.045em; line-height:1; margin:0;}
-.play-title .serif{color:var(--accent); font-size:1.08em;}
+/* scorecard: same scale as the key hints on the right */
+.scorecard{display:flex; flex-wrap:wrap; gap:16px; font-size:11px; color:var(--muted); text-transform:uppercase;}
+.sc{display:inline-flex; align-items:center; gap:6px;}
+.sc-v{
+  font-size:10.5px; line-height:normal; padding:3px 7px 2px; border-radius:5px; color:var(--ink);
+  box-shadow:inset 0 0 0 1px var(--line-2); font-variant-numeric:tabular-nums;
+  transition:background-color .6s var(--ease-out);
+}
+.sc-best .sc-v{color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent);}
+.scorecard.record .sc-best .sc-v{animation:scRecord 1.2s var(--ease-out);}
+.scorecard.record .sc-best .sc-l::after{content:" · new"; color:var(--accent);}
+@keyframes scRecord{0%{background:var(--accent); color:var(--accent-ink);} 100%{background:transparent;}}
 .play-keys{display:flex; gap:16px; font-size:11px; color:var(--muted); text-transform:uppercase;}
 .play-keys kbd{font-family:inherit; font-size:10.5px; padding:3px 7px 2px; margin:0 3px; border-radius:5px; color:var(--ink); box-shadow:inset 0 0 0 1px var(--line-2);}
 .touch-only{display:none;}

@@ -886,7 +886,7 @@
 
   /* =========================================================
      Footer runner — a curly-haired, bespectacled pixel dino.
-     Space / ↑ / tap to jump, ↓ to duck. No score, just vibes.
+     Space / ↑ / tap to jump, ↓ to duck. Score + best in the scorecard.
      ========================================================= */
   function dinoGame() {
     const box = $('#dino'), cv = $('#dinoCanvas'), ctx = cv.getContext('2d');
@@ -1005,7 +1005,26 @@
       draw(performance.now());
     }
 
+    // scorecard: live score, best (kept in this browser), runs
+    const sc = { now: $('#scNow'), best: $('#scBest'), runs: $('#scRuns'), card: $('#scorecard') };
+    let best = 0, runs = 0, shownScore = -1;
+    try { best = +localStorage.getItem('vs-dino-best') || 0; } catch (e) {}
+    const pad5 = (n) => String(Math.min(n, 99999)).padStart(5, '0');
+    sc.best.textContent = pad5(best);
+    const score = () => Math.floor(S.dist / 40);
+    function showScore() { const s = score(); if (s !== shownScore) { shownScore = s; sc.now.textContent = pad5(s); } }
+    function gameOver() {
+      const s = score();
+      if (s > best) {
+        best = s; sc.best.textContent = pad5(best);
+        try { localStorage.setItem('vs-dino-best', String(best)); } catch (e) {}
+        sc.card.classList.remove('record'); void sc.card.offsetWidth; sc.card.classList.add('record');
+      }
+    }
+
     function reset() {
+      runs++; sc.runs.textContent = String(runs).padStart(3, '0'); shownScore = -1;
+      sc.card.classList.remove('record');
       Object.assign(S, { state: 'running', t: 0, dist: 0, speed: 380 * pace(), y: 0, vy: 0, obs: [], gap: w * 0.6, hit: null });
     }
     function jump() {
@@ -1065,6 +1084,7 @@
       S.speed = Math.min(900, 380 + S.t * 9) * pace();   // narrower screens run slower so there's time to react
       const dx = S.speed * dt;
       S.dist += dx;
+      showScore();
       // physics
       if (S.y > 0) {
         S.vy -= (S.down ? GRAV * 2.8 : GRAV) * dt;
@@ -1082,7 +1102,7 @@
       const me = dinoBoxes();
       for (const o of S.obs) {
         if (o.x > DX + 60 || o.x + o.w < DX - 10) continue;
-        if (obsBoxes(o).some(b => me.some(m => overlap(m, b)))) { S.state = 'over'; S.overAt = now; S.hit = o; S.down = false; break; }
+        if (obsBoxes(o).some(b => me.some(m => overlap(m, b)))) { S.state = 'over'; S.overAt = now; S.hit = o; S.down = false; gameOver(); break; }
       }
     }
 
@@ -1198,8 +1218,243 @@
     };
   }
 
+  /* ---------- Cursor snake: the pointer is the food ----------
+     Nokia-style dot snake on a 12px grid. Turns are 90° and grid-
+     snapped, but motion is interpolated between cells so it glides.
+     hunt → eat (burst + swallow bulge) → retreat to the far corner
+     → rest → hunt again. Grows by one dot when the bulge hits the tail. */
+  function cursorSnake() {
+    const cv = $('#snake');
+    if (!cv || !fine || reduce) { if (cv) cv.hidden = true; return null; }
+    const ctx = cv.getContext('2d');
+    const dot = $('#detDot'), box = $('#detCursor');
+    const CELL = 12, START = 6, MAX = 36;
+    const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+    const WORD = { hunt: 'hunting', retreat: 'retreat', rest: 'digesting', roam: 'roaming' };
+    let W = 0, H = 0, cols = 0, rows = 0;
+    let enabled = true;
+    try { enabled = localStorage.getItem('vs-snake') !== 'off'; } catch (e) {}
+
+    let fx = -100, fy = -100, present = false, edibleAt = 0;          // food = pointer
+    let cells = [], dir = 0, grow = 0, p = 0, eaten = 0, tailIn = 1;   // body
+    let state = 'roam', restUntil = 0, goal = null, anchor = null;
+    let bulges = [], bits = [], pops = [];
+    let tagX = -100, tagY = -100, hunted = false, last = 0, raf = 0;
+
+    function resize() {
+      W = innerWidth; H = innerHeight;
+      cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+      cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      cols = Math.floor(W / CELL); rows = Math.floor(H / CELL);
+      cells.forEach(c => { if (c.x >= 0) { c.x = clamp(c.x, 1, cols - 2); c.y = clamp(c.y, 1, rows - 2); } });
+    }
+    function spawn() {
+      // slide in from the left edge, low on the screen
+      const y = Math.max(2, rows - 5);
+      cells = Array.from({ length: START + 1 }, (_, i) => ({ x: -1 - i, y }));
+      dir = 0; p = 0; grow = 0; bulges = []; state = 'roam'; goal = null;
+    }
+
+    const center = (c) => [(c.x + .5) * CELL, (c.y + .5) * CELL];
+    const segPos = (k) => {
+      const a = cells[k + 1], b = cells[k];
+      return [(lerp(a.x, b.x, p) + .5) * CELL, (lerp(a.y, b.y, p) + .5) * CELL];
+    };
+    const foodCell = () => ({ x: clamp(Math.floor(fx / CELL), 1, cols - 2), y: clamp(Math.floor(fy / CELL), 1, rows - 2) });
+    const randCell = (cx, cy, r) => ({
+      x: clamp(Math.round(cx + (Math.random() * 2 - 1) * r), 2, cols - 3),
+      y: clamp(Math.round(cy + (Math.random() * 2 - 1) * r), 2, rows - 3),
+    });
+    const near = (a, b, n) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= n;
+    const headDist = () => { const [hx, hy] = segPos(0); return Math.hypot(fx - hx, fy - hy); };
+
+    function setState(s, now) {
+      state = s;
+      if (s === 'retreat') {
+        // the corner farthest from the food (with a little randomness)
+        const m = 4, top = Math.min(9, rows >> 2), f = present ? foodCell() : cells[0];   // top corners sit below the nav
+        let best = null, bd = -1;
+        [[m, top], [cols - 1 - m, top], [m, rows - 1 - m], [cols - 1 - m, rows - 1 - m]].forEach(([x, y]) => {
+          const dd = Math.hypot(x - f.x, y - f.y) + Math.random() * 6;
+          if (dd > bd) { bd = dd; best = { x, y }; }
+        });
+        anchor = goal = best;
+      } else if (s === 'rest') {
+        restUntil = now + 1500 + Math.random() * 1300;
+        goal = randCell(anchor.x, anchor.y, 5);
+      } else if (s === 'roam') goal = randCell(cols / 2, rows / 2, Math.min(cols, rows) / 2);
+    }
+
+    const speed = () => {
+      if (state === 'hunt') { const base = Math.min(7.5 + eaten * 0.3, 13); return headDist() < 110 ? base * 1.4 : base; }
+      if (state === 'retreat') return 17;
+      if (state === 'rest') return 4;
+      return 6;
+    };
+
+    function chooseDir() {
+      const h = cells[0], t = state === 'hunt' ? foodCell() : goal;
+      let best = dir, bestS = Infinity;
+      for (let k = 0; k < 4; k++) {
+        if (k === (dir + 2) % 4) continue;                         // no 180° turns
+        const nx = h.x + DIRS[k][0], ny = h.y + DIRS[k][1];
+        if (nx < 1 || ny < 1 || nx > cols - 2 || ny > rows - 2) continue;
+        let s = Math.abs(t.x - nx) + Math.abs(t.y - ny);
+        if (k !== dir) s += 0.35;                                  // commit to straight runs
+        for (let i = 1; i < cells.length - 1; i++) if (cells[i].x === nx && cells[i].y === ny) { s += 6; break; }
+        s += Math.random() * (state === 'hunt' ? 0.25 : 0.9);
+        if (s < bestS) { bestS = s; best = k; }
+      }
+      return best;
+    }
+    function step() {
+      dir = chooseDir();
+      const h = cells[0];
+      cells.unshift({ x: h.x + DIRS[dir][0], y: h.y + DIRS[dir][1] });
+      if (grow > 0) { grow--; tailIn = 0; } else cells.pop();
+    }
+
+    function eat(now) {
+      eaten++;
+      if (cells.length - 1 + grow + bulges.length < MAX) bulges.push(0);
+      for (let i = 0; i < 16; i++) {
+        const a = Math.random() * Math.PI * 2, v = 90 + Math.random() * 240;
+        bits.push({ x: fx, y: fy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, s: 2 + (Math.random() * 3 | 0) });
+      }
+      pops.push({ x: fx, y: fy, t: 0 });
+      edibleAt = now + 700;
+      [dot, box].forEach(el => { el.classList.remove('eaten'); void el.offsetWidth; el.classList.add('eaten'); });
+      setState('retreat', now);
+    }
+
+    function update(now, dt) {
+      const edible = present && now > edibleAt;
+      if (state === 'roam') {
+        if (edible) setState('hunt', now);
+        else if (!goal || near(cells[0], goal, 1)) goal = randCell(cols / 2, rows / 2, Math.min(cols, rows) / 2);
+      } else if (state === 'hunt') {
+        if (!present) setState('roam', now);
+      } else if (state === 'retreat') {
+        if (near(cells[0], goal, 1)) setState('rest', now);
+      } else if (state === 'rest') {
+        if (near(cells[0], goal, 0)) goal = randCell(anchor.x, anchor.y, 5);
+        if (now > restUntil) setState(edible ? 'hunt' : 'roam', now);
+      }
+
+      const sp = speed();
+      p += dt * sp;
+      while (p >= 1) { p -= 1; step(); }
+      tailIn = Math.min(1, tailIn + dt * 5);
+
+      const L = cells.length - 1;
+      for (let i = bulges.length - 1; i >= 0; i--) {
+        bulges[i] += dt * sp * 1.5;
+        if (bulges[i] >= L - 1) { grow++; bulges.splice(i, 1); }
+      }
+
+      const hd = headDist();
+      if (state === 'hunt' && edible && hd < CELL * 1.15) eat(now);
+      const h2 = state === 'hunt' && edible && hd < 150;
+      if (h2 !== hunted) { hunted = h2; dot.classList.toggle('hunted', h2); }
+
+      const drag = Math.pow(0.02, dt);
+      bits = bits.filter(b => { b.x += b.vx * dt; b.y += b.vy * dt; b.vx *= drag; b.vy *= drag; b.life -= dt * 1.5; return b.life > 0; });
+      pops = pops.filter(o => (o.t += dt) < 0.9);
+    }
+
+    function draw(now) {
+      ctx.clearRect(0, 0, W, H);
+      const L = cells.length - 1, pts = [];
+      for (let k = 0; k < L; k++) pts.push(segPos(k));
+      const [hx, hy] = pts[0];
+
+      // tracking vector: dotted line from head to food when it's close
+      if (state === 'hunt' && present && now > edibleAt) {
+        const a = clamp(1 - Math.hypot(fx - hx, fy - hy) / 280, 0, 1);
+        if (a > 0) {
+          ctx.save(); ctx.setLineDash([2, 4]); ctx.lineDashOffset = -now / 40;
+          ctx.strokeStyle = rgba(C.accent, 0.6 * a); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(fx, fy); ctx.stroke(); ctx.restore();
+        }
+      }
+
+      // body, tail → head. Square "pixels", fading toward the tail.
+      for (let k = L - 1; k >= 0; k--) {
+        const [x, y] = pts[k];
+        let bulge = 0;
+        bulges.forEach(b => { bulge = Math.max(bulge, 1 - Math.abs(k - b) / 1.6); });
+        let s = (k === 0 ? 10 : 8) + 4 * bulge;
+        if (k === L - 1 && L > 1) s *= tailIn;
+        const t = k / Math.max(1, L - 1);
+        // background-coloured halo keeps the dots readable over same-coloured text
+        ctx.fillStyle = rgba(C.bg, 0.85); ctx.fillRect(x - s / 2 - 1.5, y - s / 2 - 1.5, s + 3, s + 3);
+        ctx.fillStyle = k === 0 ? C.accent : bulge > 0.35 ? rgba(C.accent, 0.9) : rgba(C.ink, 0.92 - t * 0.6);
+        ctx.fillRect(x - s / 2, y - s / 2, s, s);
+      }
+
+      // head details: eyes + tongue flick when close
+      const [dx, dy] = DIRS[dir];
+      ctx.fillStyle = C.bg;
+      [-1, 1].forEach(sg => ctx.fillRect(hx + dx * 1.5 - dy * 2.5 * sg - 1, hy + dy * 1.5 + dx * 2.5 * sg - 1, 2, 2));
+      if (state === 'hunt' && headDist() < 120 && now % 520 < 200) {
+        ctx.fillStyle = C.accent;
+        const tx = hx + dx * 6, ty = hy + dy * 6;
+        ctx.fillRect(tx - (dy ? 1 : 0) + Math.min(0, dx * 4), ty - (dx ? 1 : 0) + Math.min(0, dy * 4), dx ? 4 : 2, dy ? 4 : 2);
+        [-1, 1].forEach(sg => ctx.fillRect(tx + dx * 4 - dy * 2 * sg - 1, ty + dy * 4 + dx * 2 * sg - 1, 2, 2));
+      }
+
+      // eat burst + floating "+1"
+      bits.forEach(b => { ctx.fillStyle = rgba(C.accent, b.life); ctx.fillRect(b.x - b.s / 2, b.y - b.s / 2, b.s, b.s); });
+      ctx.font = '500 11px "Geist Mono", ui-monospace, Menlo, monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      pops.forEach(o => { const q = o.t / 0.9; ctx.fillStyle = rgba(C.accent, 1 - q); ctx.fillText('+1', o.x, o.y - 18 - 26 * easeOut(q)); });
+
+      // detection tag that trails the head
+      if (hx > -20) {
+        const label = `snake · ${String(eaten).padStart(2, '0')} · ${WORD[state]}`;
+        ctx.font = '500 10px "Geist Mono", ui-monospace, Menlo, monospace';
+        const w = ctx.measureText(label).width + 20, h = 17;
+        tagX = lerp(tagX < -50 ? hx : tagX, clamp(hx + 12, 4, W - w - 4), 0.12);
+        tagY = lerp(tagY < -50 ? hy : tagY, clamp(hy - 30, 4, H - h - 4), 0.12);
+        ctx.fillStyle = rgba(C.bg, 0.82); ctx.fillRect(tagX, tagY, w, h);
+        ctx.strokeStyle = rgba(C.ink, 0.14); ctx.lineWidth = 1; ctx.strokeRect(tagX + .5, tagY + .5, w - 1, h - 1);
+        ctx.fillStyle = C.accent; ctx.fillRect(tagX + 6, tagY + h / 2 - 2, 4, 4);
+        ctx.fillStyle = C['ink-2']; ctx.textAlign = 'left';
+        ctx.fillText(label, tagX + 14, tagY + h / 2 + .5);
+      }
+    }
+
+    function frame(now) {
+      raf = requestAnimationFrame(frame);
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      update(now, dt); draw(now);
+    }
+    function start() { if (raf) return; cv.hidden = false; last = performance.now(); raf = requestAnimationFrame(frame); }
+    function stop() {
+      cancelAnimationFrame(raf); raf = 0; ctx.clearRect(0, 0, W, H); cv.hidden = true;
+      hunted = false; dot.classList.remove('hunted');
+    }
+
+    addEventListener('pointermove', e => { fx = e.clientX; fy = e.clientY; present = true; }, { passive: true });
+    root.addEventListener('mouseleave', () => { present = false; });
+    addEventListener('blur', () => { present = false; });
+    addEventListener('resize', resize, { passive: true });
+    resize(); spawn();
+    if (enabled) start(); else cv.hidden = true;
+
+    return {
+      toggle() {
+        enabled = !enabled;
+        try { localStorage.setItem('vs-snake', enabled ? 'on' : 'off'); } catch (e) {}
+        if (enabled) { spawn(); start(); } else stop();
+        return enabled;
+      },
+    };
+  }
+
   /* ---------- Theme ---------- */
-  let flowApi = null, sketchApi = null, dinoApi = null;
+  let flowApi = null, sketchApi = null, dinoApi = null, snakeApi = null;
   function setTheme(next) {
     root.setAttribute('data-theme', next);
     try { localStorage.setItem('vs-theme', next); } catch (e) {}
@@ -1249,6 +1504,7 @@
       { label: 'Write an email', hint: 'action', run: () => { location.href = 'mailto:' + EMAIL; } },
       { label: 'Toggle light / dark', hint: 'action', run: toggleTheme },
       { label: 'Play the dino game', hint: 'fun', run: () => dinoApi && dinoApi.focus() },
+      { label: 'Toggle the cursor snake', hint: 'fun', run: () => { if (snakeApi) toast(snakeApi.toggle() ? 'Snake released. Keep your cursor moving.' : 'Snake asleep.'); } },
       { label: 'Open GitHub', hint: 'link', run: openURL('https://github.com/cosmodrop') },
       { label: 'Open LinkedIn', hint: 'link', run: openURL('https://www.linkedin.com/in/vishnu-surendran-375278170') },
       ...$$('.work h3').map(h => ({ label: h.textContent, hint: 'project', run: project(h.textContent) })),
@@ -1320,6 +1576,7 @@
   flowApi = flowField();
   scanCard();
   detectorCursor();
+  snakeApi = cursorSnake();
   pointerFx();
   filters();
   sketchApi = sketches();
