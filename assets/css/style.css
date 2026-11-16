@@ -13,10 +13,15 @@
   --muted:#8b877f;
   --line:rgba(242,238,230,.09);
   --line-2:rgba(242,238,230,.16);
-  --accent:#ff6a3d;
+  /* The accent is derived from ONE hue, so a colour theme is a single number
+     and every accent-tinted surface follows it automatically. */
+  --accent-h:14;
+  --accent-s:100%;
+  --accent-l:62%;
+  --accent:hsl(var(--accent-h) var(--accent-s) var(--accent-l));
   --accent-ink:#0b0b0a;
-  --accent-soft:rgba(255,106,61,.12);
-  --glow:rgba(255,106,61,.22);
+  --accent-soft:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .12);
+  --glow:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .22);
   --shadow:0 30px 80px -30px rgba(0,0,0,.7);
   --grain-op:.05;
 
@@ -43,10 +48,11 @@
   --muted:#77736b;
   --line:rgba(26,24,21,.10);
   --line-2:rgba(26,24,21,.18);
-  --accent:#c4532b;
+  --accent-s:78%;
+  --accent-l:44%;
   --accent-ink:#faf8f2;
-  --accent-soft:rgba(196,83,43,.10);
-  --glow:rgba(196,83,43,.16);
+  --accent-soft:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .10);
+  --glow:hsl(var(--accent-h) var(--accent-s) var(--accent-l) / .16);
   --shadow:0 30px 60px -30px rgba(60,40,20,.25);
   --grain-op:.035;
   color-scheme:light;
@@ -713,4 +719,43 @@ img,canvas,svg{display:block;}
   .mf + .mf{border-left:0; border-top:1px solid var(--line);}
   .mf-v{white-space:normal; overflow:visible; text-align:right; font-size:12px;}
   .mf-k{flex:0 0 auto;}
+}
+
+
+/* =========================================================
+   Accent themes — one hue each, independent of light/dark.
+   The mode picks saturation and lightness; this only picks hue.
+   ========================================================= */
+[data-accent="orange"]{ --accent-h:14; }
+[data-accent="red"]{    --accent-h:2; }
+[data-accent="amber"]{  --accent-h:38; }
+[data-accent="green"]{  --accent-h:145; }
+[data-accent="teal"]{   --accent-h:178; }
+[data-accent="blue"]{   --accent-h:214; }
+[data-accent="violet"]{ --accent-h:268; }
+
+/* ---- picker ---- */
+.accent-wrap{position:relative; display:inline-flex;}
+.accent-pop{
+  position:absolute; top:calc(100% + 10px); right:0; z-index:130;
+  display:flex; gap:9px; align-items:center;
+  padding:10px 12px; border-radius:14px;
+  background:color-mix(in srgb, var(--card) 94%, transparent);
+  border:1px solid var(--line-2); box-shadow:var(--shadow);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  opacity:0; transform:translateY(-6px) scale(.97); pointer-events:none;
+  transition:opacity .2s var(--ease-out), transform .2s var(--ease-out);
+}
+.accent-pop.open{opacity:1; transform:none; pointer-events:auto;}
+.swatch{
+  width:22px; height:22px; border-radius:50%; padding:0; cursor:pointer;
+  background:var(--sw); border:1px solid rgba(0,0,0,.28); position:relative;
+  transition:transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
+}
+.swatch:hover{transform:scale(1.14);}
+.swatch:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--ink);}
+@media (max-width:640px){
+  .accent-pop{gap:8px; padding:9px 10px;}
+  .swatch{width:20px; height:20px;}
 }

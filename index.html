@@ -80,6 +80,7 @@
   (function(){
     var d=document.documentElement;
     try{ var t=localStorage.getItem('vs-theme'); if(t) d.setAttribute('data-theme',t); }catch(e){}
+    try{ var a=localStorage.getItem('vs-accent'); if(a) d.setAttribute('data-accent',a); }catch(e){}
     var seen=false; try{ seen=sessionStorage.getItem('vs-booted')==='1'; }catch(e){}
     if(seen || matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('no-boot');
     d.classList.add('js');
@@ -129,6 +130,20 @@
   <div class="top-right">
     <a class="cv-top mono" href="assets/resume.pdf" download="Vishnu-Surendran-Resume.pdf" data-cursor="cv">CV ↓</a>
     <span class="clock mono" id="clock">KOCHI · --:--</span>
+    <div class="accent-wrap">
+      <button class="icon-btn" id="accentBtn" aria-label="Change colour theme" aria-expanded="false" aria-haspopup="true" data-cursor="theme">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.6"/><circle cx="9" cy="9.4" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="9.4" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <div class="accent-pop" id="accentPop" role="group" aria-label="Accent colour">
+      <button class="swatch" data-accent="orange" style="--sw:hsl(14 92% 56%)" aria-label="Orange accent" aria-pressed="true"></button>
+      <button class="swatch" data-accent="red" style="--sw:hsl(2 92% 56%)" aria-label="Red accent" aria-pressed="false"></button>
+      <button class="swatch" data-accent="amber" style="--sw:hsl(38 92% 56%)" aria-label="Amber accent" aria-pressed="false"></button>
+      <button class="swatch" data-accent="green" style="--sw:hsl(145 92% 56%)" aria-label="Green accent" aria-pressed="false"></button>
+      <button class="swatch" data-accent="teal" style="--sw:hsl(178 92% 56%)" aria-label="Teal accent" aria-pressed="false"></button>
+      <button class="swatch" data-accent="blue" style="--sw:hsl(214 92% 56%)" aria-label="Blue accent" aria-pressed="false"></button>
+      <button class="swatch" data-accent="violet" style="--sw:hsl(268 92% 56%)" aria-label="Violet accent" aria-pressed="false"></button>
+      </div>
+    </div>
     <button class="icon-btn" id="themeBtn" aria-label="Toggle theme" data-cursor="theme">
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg>
     </button>
