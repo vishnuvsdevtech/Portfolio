@@ -49,7 +49,7 @@ story.append(Paragraph(
     f'{ident["location"]}  ·  {ident["phone"]}  ·  '
     f'<link href="mailto:{ident["email"]}" color="#1F3A5F">{ident["email"]}</link>  ·  '
     'vishnuvsdevtech.github.io/Portfolio', small))
-story.append(Paragraph("Open to: Bengaluru  ·  UAE / Saudi Arabia  ·  EU (sponsorship required)  ·  Remote", small))
+story.append(Paragraph("Based in Ernakulam, Kerala, India", small))
 story.append(Spacer(1, 4))
 story.append(rule_flowable())
 
