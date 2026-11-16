@@ -1608,7 +1608,7 @@
   const accentBtn = $('#accentBtn');
 
   function setAccent(name, persist){
-    if (ACCENTS.indexOf(name) < 0) name = 'orange';
+    if (ACCENTS.indexOf(name) < 0) name = 'green';
     root.setAttribute('data-accent', name);
     if (persist !== false) { try { localStorage.setItem('vs-accent', name); } catch (e) {} }
     if (accentPop) {
@@ -1648,8 +1648,8 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') closeAccent();
     });
-    let saved = 'orange';
-    try { saved = localStorage.getItem('vs-accent') || 'orange'; } catch (e) {}
+    let saved = 'green';
+    try { saved = localStorage.getItem('vs-accent') || 'green'; } catch (e) {}
     setAccent(saved, false);
   }
 

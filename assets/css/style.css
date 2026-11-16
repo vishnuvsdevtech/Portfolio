@@ -15,7 +15,7 @@
   --line-2:rgba(242,238,230,.16);
   /* The accent is derived from ONE hue, so a colour theme is a single number
      and every accent-tinted surface follows it automatically. */
-  --accent-h:14;
+  --accent-h:145;              /* green is the default accent */
   --accent-s:100%;
   --accent-l:62%;
   --accent:hsl(var(--accent-h) var(--accent-s) var(--accent-l));
