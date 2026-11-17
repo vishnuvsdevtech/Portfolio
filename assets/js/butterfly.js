@@ -147,7 +147,33 @@
   }
 
   /* ----------------------------------------------------------------- draw */
-  const MINT = '110,231,183', VIOLET = '167,139,250', GOLD = '251,191,36';
+  /* The creature is deliberately NOT the accent colour — it is the contrast to
+     it. Read the live --accent-h and pick the opposite side of the warm/cool
+     split, so a green site gets a red-orange butterfly and a red site gets a
+     cyan one. Re-derived whenever the theme or accent changes. */
+  let P = { h1: 18, h2: 44, s: 100, l: 62 };
+
+  function accentHue() {
+    const v = getComputedStyle(d.documentElement).getPropertyValue('--accent-h').trim();
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : 145;
+  }
+
+  const hsl = (h, s, l, a) => `hsla(${Math.round(h)}, ${s}%, ${l}%, ${a})`;
+
+  function updatePalette() {
+    const H = accentHue();
+    const cool = H >= 60 && H <= 240;              // green / teal / blue / violet-ish
+    const h1 = cool ? 10 + (H * 0.12) % 18         // warm: red -> orange
+                    : 182 + (H * 0.1) % 20;        // cool: cyan -> azure
+    const light = isLight();
+    P = {
+      h1: Math.round(h1),
+      h2: Math.round(h1 + 26),
+      s: light ? 92 : 100,
+      l: light ? 46 : 62,
+    };
+  }
 
   function wingPath(sign, s) {
     // one wing pair: fore + hind, drawn as bezier petals
@@ -161,7 +187,7 @@
 
   function drawCreature(t) {
     const light = isLight();
-    const s = 1.0;
+    const s = 1.35;   // big enough to read as a creature, not a speck
     const flapX = 0.34 + Math.abs(Math.cos(B.flap)) * 0.66;
 
     ctx.save();
@@ -170,7 +196,7 @@
 
     // aura
     const aura = ctx.createRadialGradient(0, 0, 4, 0, 0, 62);
-    aura.addColorStop(0, `rgba(${MINT},${light ? 0.10 : 0.22})`);
+    aura.addColorStop(0, hsl(P.h1, P.s, P.l, light ? 0.10 : 0.20));
     aura.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = aura;
     ctx.beginPath(); ctx.arc(0, 0, 62, 0, Math.PI * 2); ctx.fill();
@@ -181,17 +207,17 @@
       ctx.save();
       ctx.scale(sign * flapX, 1);
       const g = ctx.createLinearGradient(0, -20, 28, 16);
-      g.addColorStop(0, `rgba(${MINT},0.92)`);
-      g.addColorStop(0.55, `rgba(${VIOLET},0.82)`);
-      g.addColorStop(1, `rgba(${GOLD},0.72)`);
+      g.addColorStop(0, hsl(P.h1, P.s, P.l, 0.95));
+      g.addColorStop(0.55, hsl(P.h2, P.s, P.l + 6, 0.85));
+      g.addColorStop(1, hsl(P.h2 + 16, P.s, P.l + 16, 0.78));
       wingPath(1, s);
       ctx.fillStyle = g;
-      ctx.shadowColor = `rgba(${MINT},${light ? 0.35 : 0.8})`;
+      ctx.shadowColor = hsl(P.h1, P.s, P.l, light ? 0.35 : 0.85);
       ctx.shadowBlur = light ? 8 : 20;
       ctx.fill();
       ctx.shadowBlur = 0;
       // wing veins
-      ctx.strokeStyle = `rgba(${GOLD},${light ? 0.5 : 0.75})`;
+      ctx.strokeStyle = hsl(P.h2 + 20, 100, P.l + 18, light ? 0.55 : 0.8);
       ctx.lineWidth = 0.9;
       ctx.beginPath();
       ctx.moveTo(2, 0); ctx.quadraticCurveTo(18 * s, -8 * s, 30 * s, -2 * s);
@@ -204,17 +230,17 @@
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = light ? '#2a2a26' : '#0d1a15';
     ctx.beginPath(); ctx.ellipse(0, 2, 2.4, 11, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = `rgba(${MINT},0.9)`;
+    ctx.fillStyle = hsl(P.h1, P.s, P.l, 0.95);
     ctx.beginPath(); ctx.arc(0, -9, 2.2, 0, Math.PI * 2); ctx.fill();
 
     // antennae
-    ctx.strokeStyle = `rgba(${MINT},0.75)`;
+    ctx.strokeStyle = hsl(P.h1, P.s, P.l, 0.8);
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(-1, -10); ctx.quadraticCurveTo(-7, -18, -11, -19);
     ctx.moveTo(1, -10); ctx.quadraticCurveTo(7, -18, 11, -19);
     ctx.stroke();
-    ctx.fillStyle = `rgba(${GOLD},0.95)`;
+    ctx.fillStyle = hsl(P.h2 + 20, 100, P.l + 20, 0.95);
     ctx.beginPath(); ctx.arc(-11, -19, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(11, -19, 1.5, 0, Math.PI * 2); ctx.fill();
 
@@ -224,7 +250,7 @@
   function drawPetals() {
     ctx.globalCompositeOperation = 'lighter';
     for (const p of petals) {
-      ctx.fillStyle = `rgba(${GOLD},${0.55 * p.life})`;
+      ctx.fillStyle = hsl(P.h2 + 18, 100, P.l + 22, 0.55 * p.life);
       ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
     }
     ctx.globalCompositeOperation = 'source-over';
@@ -259,6 +285,7 @@
   // Paint one frame synchronously. The first rAF tick can be delayed (hidden
   // tab, heavy load, background start), and waiting on it means the creature is
   // simply absent until it fires.
+  updatePalette();
   drawStatic();
 
   if (reduce.matches) {
@@ -277,7 +304,10 @@
   // the theme toggle rewrites colours; repaint once so light mode is correct
   addEventListener('click', (e) => {
     if (e.target.closest && e.target.closest('#themeBtn, .swatch')) {
-      setTimeout(() => { if (reduce.matches) drawStatic(); }, 60);
+      setTimeout(() => {
+        updatePalette();
+        if (reduce.matches) drawStatic();
+      }, 60);
     }
   }, { passive: true });
 })();
