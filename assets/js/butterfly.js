@@ -26,9 +26,12 @@
   function resize() {
     dpr = Math.min(devicePixelRatio || 1, 2);
     W = innerWidth; H = innerHeight;
-    canvas.width = Math.floor(W * dpr);
+    canvas.width = Math.floor(W * dpr);   // resizing the bitmap clears it
     canvas.height = Math.floor(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // under reduced motion nothing repaints, so a resize would erase the
+    // butterfly entirely (phone rotation, browser chrome collapsing)
+    if (reduce.matches) drawStatic();
   }
   resize();
   addEventListener('resize', resize, { passive: true });
