@@ -342,13 +342,21 @@ img,canvas,svg{display:block;}
   transition:transform .8s var(--ease-out);
 }
 .scan-img{
-  position:absolute; inset:0; background:center/cover no-repeat url('../img/portrait.jpg');
-  background-image:image-set(url('../img/portrait.webp') type('image/webp'), url('../img/portrait.jpg') type('image/jpeg'));
-  filter:grayscale(1) contrast(1.05) brightness(.97);
+  position:absolute; inset:0; background:center/cover no-repeat url('../img/portrait-green.webp');
+  /* the screen-print treatment is baked into the image, so the old grayscale
+     filter is gone — applying it here would strip the themed colour back out */
+  filter:none;
   transition:filter 1.2s var(--ease-out), transform 1.2s var(--ease-out);
   transform:scale(1.04);
 }
-.scan-card.locked .scan-img{filter:none; transform:scale(1);}
+.scan-card.locked .scan-img{transform:scale(1);}
+/* the hero portrait follows the accent, same rules as the avatar */
+[data-accent="red"] .scan-img{ background-image:url('../img/portrait-red.webp') }
+[data-accent="amber"] .scan-img{ background-image:url('../img/portrait-amber.webp') }
+[data-accent="teal"] .scan-img{ background-image:url('../img/portrait-teal.webp') }
+[data-accent="blue"] .scan-img{ background-image:url('../img/portrait-blue.webp') }
+[data-accent="violet"] .scan-img{ background-image:url('../img/portrait-violet.webp') }
+[data-accent="orange"] .scan-img{ background-image:url('../img/portrait-orange.webp') }
 .scan-grid{
   position:absolute; inset:0; opacity:.0; transition:opacity 1s;
   background-image:linear-gradient(var(--accent) 1px, transparent 1px), linear-gradient(90deg, var(--accent) 1px, transparent 1px);
