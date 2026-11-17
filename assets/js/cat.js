@@ -84,8 +84,8 @@
       idle: 0,
       tail: [],
       dust: [],
-      nextJump: 9000,
-      nextYawn: 7000,
+      nextJumpAt: 0,      // absolute ms — behaviours must not delay each other
+      nextYawnAt: 0,
     };
 
     function seedTail() {
@@ -140,9 +140,10 @@
       }
       cat.state = 'sit';
       cat.st = 0;
+      if (!cat.nextJumpAt) cat.nextJumpAt = performance.now() + 6000;
       cat.perch = cat.jump.to.perch;
       cat.jump = null;
-      cat.nextJump = 9000 + Math.random() * 9000;
+      cat.nextJumpAt = performance.now() + 8000 + Math.random() * 8000;
     }
 
     /* --------------------------------------------------------------- step */
@@ -172,10 +173,10 @@
         case 'sit': {
           if (near < 230) { cat.state = 'look'; cat.st = 0; break; }
           if (cat.idle > 42000) { cat.state = 'sleep'; cat.st = 0; break; }
-          if (cat.st > cat.nextJump) { startJump(); break; }
-          if (cat.st > cat.nextYawn) {
+          if (now > cat.nextJumpAt) { startJump(); break; }
+          if (now > cat.nextYawnAt) {
             cat.state = 'yawn'; cat.st = 0;
-            cat.nextYawn = 14000 + Math.random() * 12000;
+            cat.nextYawnAt = now + 14000 + Math.random() * 12000;
             break;
           }
           break;
@@ -497,6 +498,8 @@
     addEventListener('resize', resize, { passive: true });
     updatePalette();
     sitOn(choosePerch(perches(), null));
+    cat.nextJumpAt = performance.now() + 6500 + Math.random() * 4000;
+    cat.nextYawnAt = performance.now() + 9000 + Math.random() * 6000;
     drawStatic();           // never depend on the first rAF tick
 
     if (!reduce.matches) start();
