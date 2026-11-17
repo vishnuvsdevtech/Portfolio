@@ -392,16 +392,7 @@ img,canvas,svg{display:block;}
 .face-box b{font-weight:500; font-variant-numeric:tabular-nums;}
 .scan-card.locked .face-box{opacity:1; transform:none;}
 
-.landmarks{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
-.lm-lines path{fill:none; stroke:var(--accent); stroke-width:.25; opacity:.75; stroke-dasharray:120; stroke-dashoffset:120; transition:stroke-dashoffset 1.6s var(--ease-out) .35s;}
-.lm-pts circle{fill:#fff; stroke:var(--accent); stroke-width:.35; opacity:0; transform-box:fill-box; transform-origin:center; transform:scale(0); transition:opacity .4s, transform .6s var(--ease-out);}
-.scan-card.locked .lm-lines path{stroke-dashoffset:0;}
-.scan-card.locked .lm-pts circle{opacity:1; transform:none;}
-.scan-card.locked .lm-pts circle:nth-child(2n){transition-delay:.1s;}
-.scan-card.locked .lm-pts circle:nth-child(3n){transition-delay:.2s;}
 /* mesh fades back when user hovers, revealing the plain photo */
-.scan-card.locked:hover .landmarks{opacity:0;}
-.landmarks{transition:opacity .5s;}
 
 .hud{position:absolute; left:14px; right:14px; display:flex; justify-content:space-between; gap:10px; font-size:10.5px; color:#0b0b0a; text-transform:uppercase;}
 .hud span{background:rgba(250,248,242,.78); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); padding:4px 8px 3px; border-radius:4px;}
