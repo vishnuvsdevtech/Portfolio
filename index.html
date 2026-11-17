@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vishnu Surendran — AI & Computer Vision Engineer</title>
-<meta name="description" content="Vishnu Surendran builds computer vision and generative AI systems — real-time detection, tracking and AI video pipelines — shipped as working software.">
+<meta name="description" content="Vishnu Surendran builds computer vision and generative AI systems — real-time detection, semantic video search, AI agents and AI video pipelines — shipped as working software.">
 <meta name="author" content="Vishnu Surendran">
 <meta name="theme-color" content="#0b0b0a">
 <link rel="canonical" href="https://vishnuvsdevtech.github.io/Portfolio/">
@@ -56,7 +56,7 @@
   "knowsAbout": [
     "Computer Vision", "Object Detection", "Multi-camera Tracking", "Re-identification",
     "Optical Character Recognition", "Pose Estimation", "Generative AI", "Retrieval-Augmented Generation",
-    "Large Language Models", "Edge Inference", "Angular", "Python"
+    "Large Language Models", "AI Agents", "Semantic Search", "Edge Inference", "MQTT", "React", "Three.js", "Angular", "Python"
   ],
   "knowsLanguage": ["English", "Malayalam"],
   "sameAs": [
@@ -73,14 +73,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="assets/img/portrait.webp" type="image/webp">
-<link rel="stylesheet" href="assets/css/style.css?v=25">
+<link rel="stylesheet" href="assets/css/style.css?v=27">
 <script>
   // Theme + preloader decisions before first paint (no flash)
   (function(){
     var d=document.documentElement;
     try{ var t=localStorage.getItem('vs-theme'); if(t) d.setAttribute('data-theme',t); }catch(e){}
-    try{ var a=localStorage.getItem('vs-accent'); if(a) d.setAttribute('data-accent',a); }catch(e){}
+    var a='green'; try{ a=localStorage.getItem('vs-accent')||'green'; d.setAttribute('data-accent',a); }catch(e){}
+    if(!/^(orange|red|amber|green|teal|blue|violet)$/.test(a)) a='green';
+    var l=document.createElement('link'); l.rel='preload'; l.as='image'; l.type='image/webp'; l.href='assets/img/portrait-'+a+'.webp'; document.head.appendChild(l);
     var seen=false; try{ seen=sessionStorage.getItem('vs-booted')==='1'; }catch(e){}
     if(seen || matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('no-boot');
     d.classList.add('js');
@@ -123,7 +124,9 @@
     <span class="nav-pill" id="navPill" aria-hidden="true"></span>
     <a class="nav-link" href="#hero" data-sec="hero">Home</a>
     <a class="nav-link" href="#work" data-sec="work">Work</a>
+    <a class="nav-link" href="#agents" data-sec="agents">Agents</a>
     <a class="nav-link" href="#now" data-sec="now">Now</a>
+    <a class="nav-link" href="#builds" data-sec="builds">Builds</a>
     <a class="nav-link" href="#contact" data-sec="contact">Contact</a>
   </nav>
 
@@ -226,10 +229,10 @@
 <div class="marquee" id="stack" aria-label="Tools I use">
   <div class="marquee-track">
     <div class="marquee-group">
-      <span>Python</span><b>✦</b><span>OpenCV</span><b>✦</b><span class="serif">YOLOv8</span><b>✦</b><span>MediaPipe</span><b>✦</b><span>DeepSORT</span><b>✦</b><span class="serif">FaceNet</span><b>✦</b><span>RAG</span><b>✦</b><span>LLM APIs</span><b>✦</b><span class="serif">Pose Estimation</span><b>✦</b><span>OCR</span><b>✦</b><span>Homography</span><b>✦</b><span class="serif">Image-to-Video</span><b>✦</b>
+      <span>Python</span><b>✦</b><span>OpenCV</span><b>✦</b><span class="serif">YOLOv8</span><b>✦</b><span>Frigate</span><b>✦</b><span>Jina CLIP</span><b>✦</b><span class="serif">Gemma</span><b>✦</b><span>DeepSORT</span><b>✦</b><span>FaceNet</span><b>✦</b><span class="serif">AI Agents</span><b>✦</b><span>DeepSeek</span><b>✦</b><span>RAG</span><b>✦</b><span class="serif">MQTT</span><b>✦</b><span>React</span><b>✦</b><span class="serif">Three.js</span><b>✦</b><span>Grok</span><b>✦</b><span>Angular</span><b>✦</b><span>Google Flow</span><b>✦</b><span class="serif">Suno</span><b>✦</b><span>ESP32</span><b>✦</b>
     </div>
     <div class="marquee-group" aria-hidden="true">
-      <span>Python</span><b>✦</b><span>OpenCV</span><b>✦</b><span class="serif">YOLOv8</span><b>✦</b><span>MediaPipe</span><b>✦</b><span>DeepSORT</span><b>✦</b><span class="serif">FaceNet</span><b>✦</b><span>RAG</span><b>✦</b><span>LLM APIs</span><b>✦</b><span class="serif">Pose Estimation</span><b>✦</b><span>OCR</span><b>✦</b><span>Homography</span><b>✦</b><span class="serif">Image-to-Video</span><b>✦</b>
+      <span>Python</span><b>✦</b><span>OpenCV</span><b>✦</b><span class="serif">YOLOv8</span><b>✦</b><span>Frigate</span><b>✦</b><span>Jina CLIP</span><b>✦</b><span class="serif">Gemma</span><b>✦</b><span>DeepSORT</span><b>✦</b><span>FaceNet</span><b>✦</b><span class="serif">AI Agents</span><b>✦</b><span>DeepSeek</span><b>✦</b><span>RAG</span><b>✦</b><span class="serif">MQTT</span><b>✦</b><span>React</span><b>✦</b><span class="serif">Three.js</span><b>✦</b><span>Grok</span><b>✦</b><span>Angular</span><b>✦</b><span>Google Flow</span><b>✦</b><span class="serif">Suno</span><b>✦</b><span>ESP32</span><b>✦</b>
     </div>
   </div>
 </div>
@@ -240,7 +243,7 @@
     <div class="sec-head">
       <div>
         <div class="eyebrow mono reveal"><span>01</span> / Work · Selected</div>
-        <h2 class="sec-title reveal">Nine systems that <span class="serif">see, track</span> and respond.</h2>
+        <h2 class="sec-title reveal">Twelve systems that <span class="serif">see, search</span> and act.</h2>
       </div>
       <p class="sec-desc reveal">Built end to end, from model to interface. Each tile runs a small live sketch of what the system does.</p>
     </div>
@@ -251,8 +254,10 @@
       <button class="chip" data-filter="detect">Detection</button>
       <button class="chip" data-filter="recog">Recognition</button>
       <button class="chip" data-filter="track">Tracking</button>
+      <button class="chip" data-filter="search">Retrieval</button>
+      <button class="chip" data-filter="agent">Agents</button>
       <button class="chip" data-filter="gen">Generative</button>
-      <span class="filter-count mono" id="filterCount">9 matches</span>
+      <span class="filter-count mono" id="filterCount">12 matches</span>
     </div>
 
     <div class="bento" id="bento">
@@ -278,10 +283,32 @@
         </div>
       </article>
 
+            <article class="card work s7 reveal" data-cat="search gen" data-cursor="project">
+        <div class="viz"><canvas data-viz="search"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>03</span><span>Retrieval · Multimodal</span></div>
+          <h3>Semantic Video Search</h3>
+          <p>Type what you remember, not a tag: &ldquo;person in a red shirt&rdquo; finds the clip. Snapshots and AI-written captions become embeddings in one shared space, so text queries match footage by meaning.</p>
+          <div class="tags"><span>Frigate</span><span>Jina CLIP</span><span>Gemma</span><span>sqlite-vec</span></div>
+          <a class="card-link mono" href="mailto:vishnuvsdevtech@gmail.com?subject=Question%20about%20Semantic%20Video%20Search%20%E2%80%94%20from%20your%20portfolio&amp;body=Hi%20Vishnu%2C%0A%0AI%20saw%20Semantic%20Video%20Search%20on%20your%20portfolio%20and%20wanted%20to%20ask%20about%20it.%0A%0A">Ask about this <i>↗</i></a>
+        </div>
+      </article>
+
+      <article class="card work s5 reveal" data-cat="agent gen" data-cursor="project">
+        <div class="viz"><canvas data-viz="agent"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>04</span><span>Agents · Tools</span></div>
+          <h3>Tars, a personal AI agent</h3>
+          <p>A self-hosted agent I message from my phone. It transcribes voice notes, searches the web, runs its own skills and opens pull requests while I&rsquo;m away from the laptop.</p>
+          <div class="tags"><span>Hermes Agent</span><span>DeepSeek</span><span>Telegram</span><span>Docker</span></div>
+          <a class="card-link mono" href="#agents">See the workflow <i>↓</i></a>
+        </div>
+      </article>
+
       <article class="card work s4 reveal" data-cat="gen" data-cursor="project">
         <div class="viz"><canvas data-viz="chat"></canvas></div>
         <div class="card-body">
-          <div class="card-meta mono"><span>03</span><span>LLM · RAG</span></div>
+          <div class="card-meta mono"><span>05</span><span>LLM · RAG</span></div>
           <h3>AI Chatbot</h3>
           <p>A conversational assistant on LLM APIs with custom retrieval and memory, built to answer domain-specific questions accurately.</p>
           <div class="tags"><span>LLM API</span><span>RAG</span><span>Python</span></div>
@@ -292,7 +319,7 @@
       <article class="card work s4 reveal" data-cat="recog" data-cursor="project">
         <div class="viz"><canvas data-viz="face"></canvas></div>
         <div class="card-body">
-          <div class="card-meta mono"><span>04</span><span>Recognition</span></div>
+          <div class="card-meta mono"><span>06</span><span>Recognition</span></div>
           <h3>Face Recognition</h3>
           <p>Face detection and identity matching for access control, using embedding-based recognition for fast, accurate lookups.</p>
           <div class="tags"><span>FaceNet</span><span>OpenCV</span><span>Python</span></div>
@@ -303,10 +330,10 @@
       <article class="card work s4 reveal" data-cat="gen" data-cursor="project">
         <div class="viz"><canvas data-viz="video"></canvas></div>
         <div class="card-body">
-          <div class="card-meta mono"><span>05</span><span>Generative</span></div>
+          <div class="card-meta mono"><span>07</span><span>Generative</span></div>
           <h3>Video Generation</h3>
-          <p>A pipeline combining character-consistent image generation with video and audio synthesis to produce short animated content.</p>
-          <div class="tags"><span>Image-to-Video</span><span>Prompt Design</span></div>
+          <p>Character-consistent shots, generated music and a human edit, stitched into short animated episodes. Runs the Malayalam nursery rhyme series.</p>
+          <div class="tags"><span>Claude</span><span>Google Flow</span><span>Suno</span><span>Canva</span></div>
           <a class="card-link mono" href="mailto:vishnuvsdevtech@gmail.com?subject=Question%20about%20Video%20Generation%20%E2%80%94%20from%20your%20portfolio&amp;body=Hi%20Vishnu%2C%0A%0AI%20saw%20Video%20Generation%20on%20your%20portfolio%20and%20wanted%20to%20ask%20about%20it.%0A%0A">Ask about this <i>↗</i></a>
         </div>
       </article>
@@ -314,7 +341,7 @@
       <article class="card work s5 reveal" data-cat="track recog" data-cursor="project">
         <div class="viz"><canvas data-viz="people"></canvas></div>
         <div class="card-body">
-          <div class="card-meta mono"><span>06</span><span>Tracking · Re-ID</span></div>
+          <div class="card-meta mono"><span>08</span><span>Tracking · Re-ID</span></div>
           <h3>Person Tracking</h3>
           <p>Multi-camera tracking that follows individuals across frames and camera handoffs using re-identification models.</p>
           <div class="tags"><span>DeepSORT</span><span>Re-ID</span><span>OpenCV</span></div>
@@ -325,7 +352,7 @@
       <article class="card work s7 reveal" data-cat="track" data-cursor="project">
         <div class="viz"><canvas data-viz="floor"></canvas></div>
         <div class="card-body">
-          <div class="card-meta mono"><span>07</span><span>Tracking · Spatial</span></div>
+          <div class="card-meta mono"><span>09</span><span>Tracking · Spatial</span></div>
           <h3>Floor Map Tracking</h3>
           <p>Indoor positioning that projects detected people onto a 2D floor plan in real time for space and movement analytics.</p>
           <div class="tags"><span>Homography</span><span>OpenCV</span><span>Python</span></div>
@@ -333,10 +360,10 @@
         </div>
       </article>
 
-      <article class="card work s6 reveal" data-cat="detect" data-cursor="project">
+      <article class="card work s4 reveal" data-cat="detect" data-cursor="project">
         <div class="viz"><canvas data-viz="locate"></canvas></div>
         <div class="card-body">
-          <div class="card-meta mono"><span>08</span><span>Localization</span></div>
+          <div class="card-meta mono"><span>10</span><span>Localization</span></div>
           <h3>Locate Objects</h3>
           <p>Finds and localizes a specific object within a scene on request, built for inventory and search-style tasks.</p>
           <div class="tags"><span>Object Localization</span><span>Python</span></div>
@@ -344,16 +371,76 @@
         </div>
       </article>
 
-      <article class="card work s6 reveal" data-cat="track" data-cursor="project">
+      <article class="card work s4 reveal" data-cat="track" data-cursor="project">
         <div class="viz"><canvas data-viz="pose"></canvas></div>
         <div class="card-body">
-          <div class="card-meta mono"><span>09</span><span>Pose</span></div>
+          <div class="card-meta mono"><span>11</span><span>Pose</span></div>
           <h3>Posture Detection</h3>
           <p>Pose estimation that analyzes body posture in real time and flags incorrect form or ergonomic risk.</p>
           <div class="tags"><span>MediaPipe</span><span>Pose Estimation</span></div>
           <a class="card-link mono" href="mailto:vishnuvsdevtech@gmail.com?subject=Question%20about%20Posture%20Detection%20%E2%80%94%20from%20your%20portfolio&amp;body=Hi%20Vishnu%2C%0A%0AI%20saw%20Posture%20Detection%20on%20your%20portfolio%20and%20wanted%20to%20ask%20about%20it.%0A%0A">Ask about this <i>↗</i></a>
         </div>
       </article>
+      <article class="card work s4 reveal" data-cat="agent gen" data-cursor="project">
+        <div class="viz"><canvas data-viz="jarvis"></canvas></div>
+        <div class="card-body">
+          <div class="card-meta mono"><span>12</span><span>Voice · LLM</span></div>
+          <h3>Jarvis</h3>
+          <p>A personal voice assistant. Speak to it, and it listens, thinks with Gemini or Grok, and answers out loud.</p>
+          <div class="tags"><span>Gemini</span><span>Grok</span><span>Speech-to-text</span><span>Text-to-speech</span></div>
+          <a class="card-link mono" href="mailto:vishnuvsdevtech@gmail.com?subject=Question%20about%20Jarvis%20%E2%80%94%20from%20your%20portfolio&amp;body=Hi%20Vishnu%2C%0A%0AI%20saw%20Jarvis%20on%20your%20portfolio%20and%20wanted%20to%20ask%20about%20it.%0A%0A">Ask about this <i>↗</i></a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AGENTS ============ -->
+<section class="section agents" id="agents">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow mono reveal"><span>02</span> / Agents · Tars</div>
+        <h2 class="sec-title reveal">An agent that <span class="serif">keeps working</span> when I log off.</h2>
+      </div>
+      <p class="sec-desc reveal">Tars runs in Docker on my Mac and answers on Telegram. Pick a request and watch it route through the model, the tools and back to my phone.</p>
+    </div>
+
+    <div class="agent-shell reveal" id="agentShell">
+      <div class="agent-tabs" role="tablist" aria-label="Agent scenarios">
+        <button class="agent-tab is-on" role="tab" aria-selected="true" data-scn="0"><b>Voice note</b><span class="mono">→ research brief</span></button>
+        <button class="agent-tab" role="tab" aria-selected="false" data-scn="1"><b>Review my portfolio</b><span class="mono">→ pull request</span></button>
+        <button class="agent-tab" role="tab" aria-selected="false" data-scn="2"><b>Usage check</b><span class="mono">→ API report</span></button>
+        <span class="agent-progress" aria-hidden="true"><i id="agentBar"></i></span>
+      </div>
+
+      <div class="agent-body">
+        <div class="agent-stage" id="agentStage" aria-hidden="true">
+          <svg class="agent-wires" id="agentWires"></svg>
+          <div class="anode a-you" data-node="you"><i class="ai-ico">◉</i><b>You</b><small class="mono">Telegram · phone</small></div>
+          <div class="anode" data-node="gate"><i class="ai-ico">⇄</i><b>Gateway</b><small class="mono">Docker · OrbStack</small></div>
+          <div class="anode a-core" data-node="agent"><span class="core-rings"><i></i><i></i><i></i></span><b>Tars</b><small class="mono">Hermes Agent</small></div>
+          <div class="anode" data-node="model"><i class="ai-ico">✦</i><b>DeepSeek</b><small class="mono">reasoning</small></div>
+          <div class="anode" data-node="stt"><i class="ai-ico">≋</i><b>Whisper</b><small class="mono">faster-whisper · local</small></div>
+          <div class="anode" data-node="search"><i class="ai-ico">⌕</i><b>Exa</b><small class="mono">web search</small></div>
+          <div class="anode" data-node="browser"><i class="ai-ico">▭</i><b>Browser</b><small class="mono">local, headless</small></div>
+          <div class="anode" data-node="skills"><i class="ai-ico">❖</i><b>Skills</b><small class="mono">custom playbooks</small></div>
+          <div class="anode" data-node="github"><i class="ai-ico">⑂</i><b>GitHub</b><small class="mono">pull requests</small></div>
+          <div class="anode" data-node="tts"><i class="ai-ico">◖</i><b>Edge TTS</b><small class="mono">voice replies</small></div>
+        </div>
+
+        <div class="agent-log" aria-label="Agent trace">
+          <div class="log-head mono"><span>trace</span><span id="agentClock">00:00.0</span></div>
+          <ol class="log-lines mono" id="agentLog"></ol>
+          <div class="log-foot mono"><span class="pulse"></span><span id="agentState">idle</span></div>
+        </div>
+      </div>
+
+      <div class="agent-stack">
+        <span class="mono">Runs on</span>
+        <div class="tags"><span>Hermes Agent · Nous Research</span><span>DeepSeek</span><span>Docker · OrbStack</span><span>Telegram Bot API</span><span>Exa</span><span>faster-whisper</span><span>Edge TTS</span><span>Python</span></div>
+        <span class="mono agent-note">Allow-listed to one Telegram account</span>
+      </div>
     </div>
   </div>
 </section>
@@ -363,7 +450,7 @@
   <div class="wrap">
     <div class="sec-head">
       <div>
-        <div class="eyebrow mono reveal"><span>02</span> / Process</div>
+        <div class="eyebrow mono reveal"><span>03</span> / Process</div>
         <h2 class="sec-title reveal">From <span class="serif">pixels</span> to product.</h2>
       </div>
       <p class="sec-desc reveal">A demo works once. A system works every time, on real cameras and modest hardware. That's the part I care about.</p>
@@ -395,20 +482,55 @@
   <div class="wrap">
     <div class="sec-head">
       <div>
-        <div class="eyebrow mono reveal"><span>03</span> / Now · Currently</div>
+        <div class="eyebrow mono reveal"><span>04</span> / Now · Currently</div>
         <h2 class="sec-title reveal">What's <span class="serif">moving</span> right now.</h2>
       </div>
-      <span class="updated mono reveal"><span class="pulse"></span>UPDATED SEP 2026</span>
+      <span class="updated mono reveal"><span class="pulse"></span>UPDATED NOV 2026</span>
     </div>
 
     <div class="now-bento">
+      <article class="card now n-map reveal">
+        <div class="map-copy">
+          <div class="tag mono"><span class="pulse"></span>Building</div>
+          <h3>A 3D floor map for live tracking</h3>
+          <p>The site in three dimensions: walls, cameras and the ground each one covers. Tracked people are placed on the floor plan as they move, and anyone inside a camera&rsquo;s view is boxed with that camera&rsquo;s ID.</p>
+          <div class="tags"><span>React</span><span>Three.js</span></div>
+          <dl class="map-legend mono">
+            <div><dt><i class="lg-cam"></i></dt><dd>Camera and its coverage</dd></div>
+            <div><dt><i class="lg-per"></i></dt><dd>Tracked person</dd></div>
+            <div><dt><i class="lg-det"></i></dt><dd>Seen by a camera</dd></div>
+          </dl>
+          <p class="map-fine mono">Demo layout and motion are synthetic.</p>
+        </div>
+        <div class="map3d" id="map3d" data-cursor="map">
+          <canvas id="map3dCanvas" role="img" aria-label="Interactive 3D floor plan with four cameras and people walking between rooms"></canvas>
+          <div class="map-hud mono" aria-hidden="true">
+            <span id="mapCount">0 tracks</span><span id="mapView">orbit 3D</span>
+          </div>
+          <div class="map-ctl" role="group" aria-label="Map view controls">
+            <button class="mc is-on" data-view="persp" aria-pressed="true">3D</button>
+            <button class="mc" data-view="top" aria-pressed="false">Top</button>
+            <span class="mc-sep"></span>
+            <button class="mc" data-zoom="in" aria-label="Zoom in">+</button>
+            <button class="mc" data-zoom="out" aria-label="Zoom out">−</button>
+            <button class="mc" data-view="reset" aria-label="Reset view">↺</button>
+          </div>
+          <div class="map-hint mono" id="mapHint"><span class="key-only">Drag to orbit · Shift-drag to pan · ⌘/Ctrl + scroll to zoom</span><span class="touch-only">Swipe sideways to orbit · pinch to zoom</span></div>
+        </div>
+      </article>
+
       <article class="card now n-build reveal">
         <div class="tag mono"><span class="pulse"></span>Building</div>
         <h3>An AI-generated Malayalam nursery rhyme series</h3>
-        <p>End-to-end pipeline: consistent character design, image-to-video generation, native singing audio, all stitched into short-form video.</p>
-        <div class="flow-steps mono" aria-label="Pipeline stages">
-          <span>Character</span><i></i><span>Image</span><i></i><span>Video</span><i></i><span>Audio</span><i></i><span>Edit</span>
-        </div>
+        <p>Claude writes the script and shot prompts, Google Flow turns them into character-consistent clips, Suno sings the song, and every episode is cut together in Canva.</p>
+        <ol class="tool-chain mono" aria-label="Production pipeline">
+          <li><b>Script &amp; prompts</b><span>Claude</span></li>
+          <li><b>Clips</b><span>Google Flow</span></li>
+          <li><b>Song</b><span>Suno</span></li>
+          <li><b>Edit</b><span>Canva</span></li>
+          <li><b>Publish</b><span>YouTube</span></li>
+        </ol>
+        <div class="nle" aria-hidden="true"><canvas id="nleCanvas"></canvas></div>
       </article>
 
       <article class="card now n-learn reveal">
@@ -416,24 +538,137 @@
         <h3>Prompt-level control over video model consistency</h3>
         <p>Working out reference-image techniques to hold character identity, lighting and framing steady across separate generations.</p>
         <div class="consistency" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="tags n-learn-tags"><span>Google Flow</span><span>Reference images</span></div>
       </article>
 
       <article class="card now n-sm reveal">
-        <div class="tag mono">Stack</div>
-        <h3>Python · OpenCV</h3>
-        <p>Daily driver for detection and tracking work.</p>
+        <div class="tag mono">Next</div>
+        <h3>Live view inside ICE</h3>
+        <p>Camera feeds and basic detections in the ICE dashboard, reachable from any network.</p>
       </article>
       <article class="card now n-sm reveal">
-        <div class="tag mono">Tools</div>
-        <h3>YOLO · MediaPipe</h3>
-        <p>Go-to for real-time vision tasks.</p>
+        <div class="tag mono">Planning</div>
+        <h3>Recording &amp; storage</h3>
+        <p>NVR-style recording controls for EdgeVision, including moving footage to external disks.</p>
       </article>
       <article class="card now n-sm reveal">
-        <div class="tag mono">Focus</div>
-        <h3>Edge-ready inference</h3>
-        <p>Making models run fast on modest hardware.</p>
+        <div class="tag mono">Learning</div>
+        <h3>RAG, hands-on</h3>
+        <p>Embeddings, chunking, reranking and evaluation, built from scratch to go past the chatbot.</p>
       </article>
     </div>
+  </div>
+</section>
+
+<!-- ============ BUILDS ============ -->
+<section class="section builds" id="builds">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow mono reveal"><span>05</span> / Builds · Beyond models</div>
+        <h2 class="sec-title reveal">Firmware, plumbing and <span class="serif">pixels</span>.</h2>
+      </div>
+      <p class="sec-desc reveal">Not everything needs a model. Devices, messaging and interfaces, built with the same care. Open one to see it run.</p>
+    </div>
+
+    <ol class="build-list" id="buildList">
+      <li class="build is-open reveal">
+        <button class="build-row" aria-expanded="true" aria-controls="b-buddy">
+          <span class="b-idx mono">B/01</span>
+          <span class="b-title">Keychain Buddy</span>
+          <span class="b-kind mono">Hardware · firmware</span>
+          <span class="b-year mono">2026</span>
+          <i class="b-plus" aria-hidden="true"></i>
+        </button>
+        <div class="build-body" id="b-buddy"><div class="build-inner">
+          <div class="b-copy">
+            <p>A pixel pet for a keychain. Its browser twin draws into the same 1-bit framebuffer as the firmware, so the face and its reaction timings are settled before any parts are bought.</p>
+            <dl class="spec mono">
+              <div><dt>Board</dt><dd>ESP32-C3 SuperMini</dd></div>
+              <div><dt>Display</dt><dd>0.96&Prime; SSD1306 OLED, 128&times;64</dd></div>
+              <div><dt>Moods</dt><dd>idle, blink, happy, dizzy, sleep</dd></div>
+              <div><dt>Power</dt><dd>LiPo + TP4056, deep sleep after 5 min</dd></div>
+              <div><dt>Status</dt><dd>simulator live, hardware next</dd></div>
+            </dl>
+            <div class="tags"><span>Arduino C++</span><span>Adafruit GFX</span><span>SSD1306</span><span>Vanilla JS</span><span>Node.js</span><span>GitHub Pages</span></div>
+            <div class="b-links mono">
+              <a href="https://vishnuvsdevtech.github.io/keychain-buddy/" target="_blank" rel="noopener">Open the simulator ↗</a>
+              <a href="https://github.com/vishnuvsdevtech/keychain-buddy" target="_blank" rel="noopener">Source ↗</a>
+            </div>
+          </div>
+          <div class="b-viz b-oled"><canvas data-build-viz="buddy" aria-label="Pixel pet face. Click to boop it."></canvas><span class="b-cap mono">click to boop</span></div>
+        </div></div>
+      </li>
+
+      <li class="build reveal">
+        <button class="build-row" aria-expanded="false" aria-controls="b-ice">
+          <span class="b-idx mono">B/02</span>
+          <span class="b-title">ICE &harr; EdgeVision bridge</span>
+          <span class="b-kind mono">IoT · messaging</span>
+          <span class="b-year mono">2026</span>
+          <i class="b-plus" aria-hidden="true"></i>
+        </button>
+        <div class="build-body" id="b-ice"><div class="build-inner">
+          <div class="b-copy">
+            <p>Cameras and edge boxes are onboarded and configured from ICE, a ThingsBoard-based IoT platform. Each action travels over HTTP to a broker, then MQTT to a connector inside EdgeVision, which runs it and answers back down the same path.</p>
+            <dl class="spec mono">
+              <div><dt>Platform</dt><dd>ICE, built on ThingsBoard</dd></div>
+              <div><dt>Path</dt><dd>HTTP &rarr; broker &rarr; MQTT &rarr; connector</dd></div>
+              <div><dt>My part</dt><dd>connectors and command handlers</dd></div>
+              <div><dt>Next</dt><dd>live view in ICE, from any network</dd></div>
+            </dl>
+            <div class="tags"><span>ThingsBoard</span><span>MQTT</span><span>HTTP</span></div>
+          </div>
+          <div class="b-viz"><canvas data-build-viz="mqtt" aria-label="Sequence diagram of a command travelling from ICE to EdgeVision and back"></canvas></div>
+        </div></div>
+      </li>
+
+      <li class="build reveal">
+        <button class="build-row" aria-expanded="false" aria-controls="b-site">
+          <span class="b-idx mono">B/03</span>
+          <span class="b-title">This portfolio</span>
+          <span class="b-kind mono">Web · motion</span>
+          <span class="b-year mono">2026</span>
+          <i class="b-plus" aria-hidden="true"></i>
+        </button>
+        <div class="build-body" id="b-site"><div class="build-inner">
+          <div class="b-copy">
+            <p>A page that behaves like a vision system: a detector for a cursor, live sketches, a pixel runner and seven accent themes. The portrait is recoloured for every theme in OKLCH, so each version keeps the same light and contrast.</p>
+            <dl class="spec mono">
+              <div><dt>Themes</dt><dd>7 accents &times; light and dark</dd></div>
+              <div><dt>Build</dt><dd>no framework, no build step</dd></div>
+              <div><dt>Helpers</dt><dd>two pull requests opened by Tars</dd></div>
+            </dl>
+            <div class="tags"><span>HTML</span><span>CSS</span><span>Vanilla JS</span><span>Canvas 2D</span><span>Python · Pillow · NumPy</span><span>GitHub Pages</span></div>
+            <div class="b-links mono">
+              <a href="https://github.com/vishnuvsdevtech/Portfolio" target="_blank" rel="noopener">Source ↗</a>
+            </div>
+          </div>
+          <div class="b-viz b-hue"><canvas data-build-viz="hue" aria-label="The portrait cycling through the seven accent themes"></canvas></div>
+        </div></div>
+      </li>
+
+      <li class="build reveal">
+        <button class="build-row" aria-expanded="false" aria-controls="b-ng">
+          <span class="b-idx mono">B/04</span>
+          <span class="b-title">Frontend, seven years in</span>
+          <span class="b-kind mono">Frontend · architecture</span>
+          <span class="b-year mono">2019&ndash;now</span>
+          <i class="b-plus" aria-hidden="true"></i>
+        </button>
+        <div class="build-body" id="b-ng"><div class="build-inner">
+          <div class="b-copy">
+            <p>Single-page apps for client projects at Fingent across Angular 7 to 12, then the React frontend for EdgeVision at VVDN, including its 3D floor map. Reactive streams carry the data from the API to the screen.</p>
+            <dl class="spec mono">
+              <div><dt>Fingent</dt><dd>2019&ndash;22, Angular 7&ndash;12 SPAs</dd></div>
+              <div><dt>VVDN</dt><dd>2023&ndash;now, React + Three.js</dd></div>
+            </dl>
+            <div class="tags"><span>React</span><span>Three.js</span><span>Angular</span><span>TypeScript</span><span>RxJS</span><span>NgRx</span><span>REST APIs</span></div>
+          </div>
+          <div class="b-viz"><canvas data-build-viz="marbles" aria-label="Marble diagram: keystrokes debounced and switched into API results"></canvas></div>
+        </div></div>
+      </li>
+    </ol>
   </div>
 </section>
 
@@ -441,7 +676,7 @@
 <section class="section contact" id="contact">
   <div class="contact-glow" aria-hidden="true"></div>
   <div class="wrap">
-    <div class="eyebrow mono reveal"><span>04</span> / Contact</div>
+    <div class="eyebrow mono reveal"><span>06</span> / Contact</div>
     <h2 class="big-title" id="bigTitle">Bring me the <span class="serif accent">hard</span> problem.</h2>
     <div class="contact-row">
       <p class="reveal">Open to conversations about computer vision, AI systems, and anything that doesn't have an obvious solution yet. I read every message.</p>
@@ -468,9 +703,11 @@
       </div>
       <div class="foot-col">
         <div class="f-label mono">Work</div>
-        <a href="#work">Object Detection</a>
-        <a href="#work">Face Recognition</a>
-        <a href="#work">Video Generation</a>
+        <a href="#work">Semantic Video Search</a>
+        <a href="#agents">Tars, the AI agent</a>
+        <a href="#work">Jarvis</a>
+        <a href="#now">3D floor map</a>
+        <a href="#builds">Keychain Buddy</a>
       </div>
       <div class="foot-col">
         <div class="f-label mono">Elsewhere</div>
@@ -482,7 +719,7 @@
     <div class="play reveal" id="play">
       <div class="play-head">
         <div>
-          <div class="eyebrow mono"><span>05</span> / Break · Play</div>
+          <div class="eyebrow mono"><span>07</span> / Break · Play</div>
           <div class="scorecard mono" id="scorecard" aria-label="Runner scorecard">
             <div class="sc"><span class="sc-l">Score</span><span class="sc-v" id="scNow">00000</span></div>
             <div class="sc sc-best"><span class="sc-l">Best</span><span class="sc-v" id="scBest">00000</span></div>
@@ -525,7 +762,8 @@
 
 <div class="toast mono" id="toast" role="status" aria-live="polite"></div>
 
-<script src="assets/js/main.js?v=10" defer></script>
+<script src="assets/js/main.js?v=12" defer></script>
+<script src="assets/js/live.js?v=1" defer></script>
 <script src="assets/js/butterfly.js" defer></script>
 </body>
 </html>

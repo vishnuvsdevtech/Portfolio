@@ -20,9 +20,16 @@
 
   /* ---------- Theme colors (read from CSS tokens) ---------- */
   const C = {};
+  // Tokens can be any CSS colour (the accent is hsl(var(--accent-h) …)), but the
+  // sketches build translucent fills with rgba(), which needs hex. A 1×1 canvas
+  // normalises whatever the browser resolved into #rrggbb.
+  const toHex = (() => {
+    const c = d.createElement('canvas').getContext('2d');
+    return (v) => { c.fillStyle = '#000'; c.fillStyle = v; return c.fillStyle; };
+  })();
   function readColors() {
     const cs = getComputedStyle(root);
-    ['bg', 'bg-2', 'card', 'card-2', 'ink', 'ink-2', 'muted', 'accent'].forEach(k => { C[k] = cs.getPropertyValue('--' + k).trim(); });
+    ['bg', 'bg-2', 'card', 'card-2', 'ink', 'ink-2', 'muted', 'accent', 'accent-ink'].forEach(k => { C[k] = toHex(cs.getPropertyValue('--' + k).trim()); });
   }
   function rgba(hex, a) {
     if (!hex || hex[0] !== '#') return hex;
@@ -167,7 +174,7 @@
       pill.style.width = a.offsetWidth + 'px';
       pill.style.transform = `translateX(${a.offsetLeft}px)`;
     };
-    const map = { hero: 'hero', work: 'work', process: 'work', now: 'now', contact: 'contact' };
+    const map = { hero: 'hero', work: 'work', agents: 'agents', process: 'agents', now: 'now', builds: 'builds', contact: 'contact' };
     const io = new IntersectionObserver(es => {
       es.forEach(e => {
         if (e.isIntersecting) move(links.find(l => l.dataset.sec === map[e.target.id]));
@@ -567,6 +574,207 @@
       }
       if (ph > 4.8) bubble('Great, thanks!', h * 0.76, true, easeOut(clamp((ph - 4.8) / 0.4, 0, 1)));
       ctx.globalAlpha = 1;
+    },
+
+    /* semantic search — typed query lands in the shared embedding space,
+       its nearest neighbours light up and come back as clips */
+    search(ctx, w, h, t, s) {
+      const T = 8.4, ph = t % T;
+      const fade = ph > T - 0.5 ? 1 - (ph - (T - 0.5)) / 0.5 : ph < 0.25 ? ph / 0.25 : 1;
+      ctx.globalAlpha = fade;
+      const wide = w > 420;
+      const pad = 16, barH = 30, top = pad + barH + 18;
+      const mapW = wide ? w * 0.56 - pad : w - pad * 2, mapH = h - top - pad;
+      const mx = pad, my = top;
+      if (!s.pts || s.k !== Math.round(mapW) + 'x' + Math.round(mapH)) {
+        s.k = Math.round(mapW) + 'x' + Math.round(mapH);
+        // four loose clusters: vehicles, red clothing, packages, animals
+        const cl = [[0.2, 0.3], [0.68, 0.62], [0.3, 0.78], [0.8, 0.22]];
+        s.pts = Array.from({ length: 46 }, (_, i) => {
+          const c = cl[i % 4], a = rnd(i + 3) * 6.28, r = Math.sqrt(rnd(i + 11)) * 0.17;
+          return { x: c[0] + Math.cos(a) * r, y: c[1] + Math.sin(a) * r * 1.2, cap: i % 3 === 0, c: i % 4 };
+        });
+        s.q = { x: 0.66, y: 0.6 };
+        s.nn = s.pts.map((p, i) => ({ i, d: Math.hypot(p.x - s.q.x, p.y - s.q.y) })).sort((a, b) => a.d - b.d).slice(0, 3).map(o => o.i);
+      }
+      // query bar
+      const query = 'person in a red shirt';
+      const n = Math.floor(clamp(ph / 1.5, 0, 1) * query.length);
+      ctx.strokeStyle = rgba(C.ink, 0.22); ctx.lineWidth = 1;
+      rr(ctx, pad, pad, (wide ? w * 0.56 : w) - pad * 2 + (wide ? pad : 0), barH, 15); ctx.stroke();
+      ctx.font = SANS; ctx.fillStyle = C.ink; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+      ctx.fillStyle = C.muted; ctx.fillText('⌕', pad + 12, pad + barH / 2 + 1);
+      ctx.fillStyle = C.ink; ctx.fillText(query.slice(0, n), pad + 30, pad + barH / 2 + 1);
+      if (ph < 1.7 && (t * 2 | 0) % 2) { const cw = ctx.measureText(query.slice(0, n)).width; ctx.fillRect(pad + 31 + cw, pad + 8, 1.5, barH - 16); }
+      // embedding map
+      const P = (p) => [mx + p.x * mapW, my + p.y * mapH];
+      hud(ctx, 'shared embedding space', mx, my - 6);
+      const lit = ph > 2.6;
+      s.pts.forEach((p, i) => {
+        const [x, y] = P(p), near = lit && s.nn.includes(i);
+        ctx.fillStyle = near ? C.accent : rgba(C.ink, 0.3);
+        if (p.cap) { ctx.beginPath(); ctx.moveTo(x, y - 3.5); ctx.lineTo(x + 3.5, y); ctx.lineTo(x, y + 3.5); ctx.lineTo(x - 3.5, y); ctx.fill(); }
+        else { ctx.beginPath(); ctx.arc(x, y, near ? 3.4 : 2.4, 0, 7); ctx.fill(); }
+      });
+      // query vector flies in
+      const [qx, qy] = P(s.q);
+      if (ph > 1.5) {
+        const k = easeOut(clamp((ph - 1.5) / 0.9, 0, 1));
+        const sx = pad + 40, sy = pad + barH;
+        const x = lerp(sx, qx, k), y = lerp(sy, qy, k);
+        ctx.strokeStyle = rgba(C.accent, 0.5); ctx.setLineDash([3, 4]);
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx, qy, x, y); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = C.accent; ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y); ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6); ctx.stroke();
+        if (k >= 1) {
+          const r = 10 + easeOut(clamp((ph - 2.4) / 0.8, 0, 1)) * Math.min(mapW, mapH) * 0.16;
+          ctx.strokeStyle = rgba(C.accent, 0.4); ctx.beginPath(); ctx.arc(qx, qy, r, 0, 7); ctx.stroke();
+          ctx.fillStyle = rgba(C.accent, 0.07); ctx.fill();
+        }
+      }
+      if (lit) {
+        s.nn.forEach((i, j) => {
+          const a = clamp((ph - 2.6 - j * 0.15) / 0.3, 0, 1);
+          const [x, y] = P(s.pts[i]);
+          ctx.strokeStyle = rgba(C.accent, 0.7 * a); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(x, y); ctx.stroke();
+        });
+      }
+      ctx.font = MONO; ctx.fillStyle = C.muted; ctx.textAlign = 'left';
+      ctx.fillText('● frame   ◆ caption', mx, my + mapH + 2);
+      // results
+      if (wide) {
+        const rx = w * 0.56 + 14, rw = w - rx - pad, rh = (h - pad * 2 - 16) / 3 - 8;
+        hud(ctx, ph > 3.2 ? 'top 3 · cosine' : 'searching…', rx, pad + 10);
+        const res = [['CAM_02 · 14:03', '0.91'], ['CAM_04 · 09:47', '0.88'], ['CAM_01 · 18:22', '0.84']];
+        res.forEach((r, j) => {
+          const a = easeOut(clamp((ph - 3.3 - j * 0.35) / 0.5, 0, 1));
+          if (a <= 0) return;
+          const y = pad + 22 + j * (rh + 8);
+          ctx.globalAlpha = fade * a;
+          const x = rx + (1 - a) * 14;
+          ctx.fillStyle = rgba(C.ink, 0.06); rr(ctx, x, y, rw, rh, 6); ctx.fill();
+          // thumbnail with a little figure in an accent shirt
+          const tw = Math.min(rh * 1.5, rw * 0.42), tx = x + 6, ty = y + 6, th = rh - 12;
+          ctx.fillStyle = rgba(C.ink, 0.08); rr(ctx, tx, ty, tw, th, 4); ctx.fill();
+          const fx = tx + tw * (0.35 + j * 0.15), fy = ty + th * 0.2;
+          ctx.fillStyle = rgba(C.ink, 0.55); ctx.beginPath(); ctx.arc(fx, fy + 3, 3, 0, 7); ctx.fill();
+          ctx.fillStyle = '#e5413a'; ctx.fillRect(fx - 4, fy + 7, 8, th * 0.32);
+          ctx.fillStyle = rgba(C.ink, 0.45); ctx.fillRect(fx - 3, fy + 7 + th * 0.32, 2.4, th * 0.28); ctx.fillRect(fx + 0.6, fy + 7 + th * 0.32, 2.4, th * 0.28);
+          corners(ctx, fx - 8, fy - 3, 16, th * 0.8, 4, C.accent, 1.2);
+          ctx.font = MONO; ctx.fillStyle = C.ink; ctx.textBaseline = 'alphabetic';
+          ctx.fillText(r[0], tx + tw + 10, y + rh / 2 - 2);
+          ctx.fillStyle = C.accent; ctx.fillText('sim ' + r[1], tx + tw + 10, y + rh / 2 + 12);
+          ctx.globalAlpha = fade;
+        });
+      }
+      ctx.globalAlpha = 1;
+    },
+
+    /* agent — a voice note goes in, tools run in order, an answer comes back */
+    agent(ctx, w, h, t) {
+      const T = 7.6, ph = t % T;
+      const fade = ph > T - 0.5 ? 1 - (ph - (T - 0.5)) / 0.5 : 1;
+      ctx.globalAlpha = fade;
+      const pad = 16, right = w - pad;
+      // incoming voice note
+      const a0 = easeOut(clamp((ph - 0.2) / 0.4, 0, 1));
+      const bw = Math.min(190, w * 0.55), by = pad + 4;
+      ctx.globalAlpha = fade * a0;
+      ctx.fillStyle = C.accent; rr(ctx, right - bw, by + (1 - a0) * 8, bw, 32, 15); ctx.fill();
+            for (let i = 0; i < 22; i++) {
+        const hh = 3 + Math.abs(Math.sin(i * 1.7) * 9 + Math.sin(i * 0.6) * 4);
+        ctx.fillStyle = C['accent-ink']; ctx.globalAlpha = fade * a0 * (ph > 1 + i * 0.03 ? 0.85 : 0.35);
+        ctx.fillRect(right - bw + 30 + i * 4.6, by + 16 - hh / 2 + (1 - a0) * 8, 2.4, hh);
+      }
+      ctx.globalAlpha = fade * a0;
+      ctx.font = MONO; ctx.fillStyle = C['accent-ink']; ctx.textBaseline = 'middle';
+      ctx.fillText('▶', right - bw + 12, by + 16); ctx.textAlign = 'right'; ctx.fillText('0:14', right - 10, by + 16); ctx.textAlign = 'left';
+      ctx.globalAlpha = fade;
+      // tool calls
+      const steps = [['faster-whisper', 'transcribe', '1.2s'], ['Exa', 'search × 3', '2.0s'], ['skill', 'project-pitch-research', '3.1s'], ['Edge TTS', 'voice summary', '0.8s']];
+      const sy = by + 52, rowH = Math.min(30, (h - sy - 58) / steps.length);
+      steps.forEach((st, i) => {
+        const t0 = 1.1 + i * 0.85, k = clamp((ph - t0) / 0.7, 0, 1);
+        if (ph < t0) return;
+        const y = sy + i * rowH;
+        ctx.globalAlpha = fade * easeOut(Math.min(1, k * 2));
+        ctx.strokeStyle = rgba(C.ink, 0.18); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad + 4, y - rowH / 2 + 4); ctx.lineTo(pad + 4, y + 4); ctx.stroke();
+        const done = k >= 1;
+        ctx.fillStyle = done ? C.accent : rgba(C.ink, 0.25);
+        ctx.beginPath(); ctx.arc(pad + 4, y + 6, 4, 0, 7); ctx.fill();
+        ctx.font = MONO; ctx.textBaseline = 'middle';
+        ctx.fillStyle = C.ink; ctx.fillText(st[0], pad + 18, y + 6);
+        const nx = pad + 18 + ctx.measureText(st[0]).width + 8;
+        ctx.fillStyle = C.muted; ctx.fillText(st[1], nx, y + 6);
+        ctx.textAlign = 'right'; ctx.fillStyle = done ? C.accent : C.muted;
+        ctx.fillText(done ? st[2] : '·'.repeat(1 + ((t * 4) | 0) % 3), right, y + 6); ctx.textAlign = 'left';
+        // progress hairline
+        ctx.fillStyle = rgba(C.accent, 0.5); ctx.fillRect(nx, y + 15, (right - nx - 40) * k, 1);
+      });
+      // reply
+      if (ph > 4.8) {
+        const a = easeOut(clamp((ph - 4.8) / 0.4, 0, 1));
+        ctx.globalAlpha = fade * a;
+        const text = 'Brief ready · 3 sources · voice note attached';
+        ctx.font = SANS; const tw = Math.min(ctx.measureText(text).width + 24, w - pad * 2);
+        const y = h - pad - 32 + (1 - a) * 8;
+        ctx.fillStyle = rgba(C.ink, 0.08); rr(ctx, pad, y, tw, 30, 14); ctx.fill();
+        ctx.fillStyle = C.ink; ctx.textBaseline = 'middle'; ctx.fillText(text, pad + 12, y + 15);
+      }
+      ctx.globalAlpha = 1;
+    },
+
+    /* jarvis — listen, think with a model, answer out loud */
+    jarvis(ctx, w, h, t) {
+      const T = 8, ph = t % T, cyc = Math.floor(t / T);
+      const fade = ph > T - 0.5 ? (T - ph) / 0.5 : ph < 0.25 ? ph / 0.25 : 1;
+      ctx.globalAlpha = fade;
+      const cx = w / 2, cy = h * 0.4, R = Math.min(w, h) * 0.13;
+      const listen = ph > 0.2 && ph < 2.3, think = ph >= 2.3 && ph < 3.5, speak = ph >= 3.5 && ph < 7.2;
+      const state = listen ? 'listening' : think ? 'thinking' : speak ? 'speaking' : 'idle';
+      // radial voice bars
+      const n = 44, live = listen || speak;
+      for (let i = 0; i < n; i++) {
+        const a = i / n * Math.PI * 2;
+        const amp = live ? (0.25 + 0.75 * Math.abs(Math.sin(t * (listen ? 9 : 6) + i * 0.9) * Math.sin(t * 3.3 + i * 0.37))) : 0.08;
+        const l = R * 0.22 + amp * R * 0.75;
+        ctx.strokeStyle = speak ? C.accent : rgba(C.ink, live ? 0.55 : 0.2); ctx.lineWidth = 2; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * (R + 4), cy + Math.sin(a) * (R + 4)); ctx.lineTo(cx + Math.cos(a) * (R + 4 + l), cy + Math.sin(a) * (R + 4 + l)); ctx.stroke();
+      }
+      ctx.lineCap = 'butt';
+      // core
+      ctx.fillStyle = rgba(C.accent, speak ? 0.22 : 0.1); ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fill();
+      ctx.strokeStyle = C.accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke();
+      if (think) {
+        ctx.setLineDash([4, 6]); ctx.lineDashOffset = -t * 30;
+        ctx.beginPath(); ctx.arc(cx, cy, R * 0.66, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.lineDashOffset = 0;
+      } else {
+        ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(cx, cy, R * 0.18 * (speak ? 1.3 : 1), 0, 7); ctx.fill();
+      }
+      hud(ctx, state, 14, 22);
+      // model chips: alternate between the two models each loop
+      const models = ['Gemini', 'Grok'], pick = cyc % 2;
+      ctx.font = MONO; let x = w - 14;
+      [...models].reverse().forEach((m, k) => {
+        const idx = models.length - 1 - k, on = idx === pick && ph >= 2.3;
+        const tw = ctx.measureText(m).width + 12; x -= tw;
+        ctx.fillStyle = on ? C.accent : rgba(C.ink, 0.07); rr(ctx, x, 9, tw, 17, 4); ctx.fill();
+        ctx.fillStyle = on ? C['accent-ink'] : C.muted; ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillText(m, x + 6, 18);
+        x -= 6;
+      });
+      // words
+      ctx.font = SANS; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const q = 'Explain embeddings in one line.', a = 'Numbers that place meaning on a map.';
+      const qy = cy + R * 2.15, ay = qy + 24;
+      const qn = Math.floor(clamp((ph - 0.3) / 1.8, 0, 1) * q.length);
+      if (qn) { ctx.fillStyle = rgba(C.ink, speak ? 0.45 : 0.85); ctx.fillText('“' + q.slice(0, qn) + (qn < q.length ? '' : '”'), cx, qy); }
+      if (ph > 3.5) {
+        const an = Math.floor(clamp((ph - 3.6) / 2.4, 0, 1) * a.length);
+        ctx.fillStyle = C.accent; ctx.fillText(a.slice(0, Math.max(1, an)), cx, ay);
+      }
+      ctx.textAlign = 'left'; ctx.globalAlpha = 1;
     },
 
     /* 04 — rotating face mesh + embedding match */
@@ -1517,17 +1725,22 @@
     const cmds = [
       { label: 'Go to Home', hint: 'section', run: go('#hero') },
       { label: 'Go to Work', hint: 'section', run: go('#work') },
+      { label: 'Go to Agents', hint: 'section', run: go('#agents') },
       { label: 'Go to Process', hint: 'section', run: go('#process') },
       { label: 'Go to Now', hint: 'section', run: go('#now') },
+      { label: 'Go to Builds', hint: 'section', run: go('#builds') },
+      { label: 'Explore the 3D floor map', hint: 'demo', run: go('#map3d') },
+      { label: 'Watch the agent workflow', hint: 'demo', run: go('#agentShell') },
       { label: 'Go to Contact', hint: 'section', run: go('#contact') },
       { label: 'Copy email address', hint: 'action', run: copyEmail },
       { label: 'Write an email', hint: 'action', run: () => { location.href = 'mailto:' + EMAIL; } },
       { label: 'Toggle light / dark', hint: 'action', run: toggleTheme },
       { label: 'Play the dino game', hint: 'fun', run: () => dinoApi && dinoApi.focus() },
       { label: 'Toggle the cursor snake', hint: 'fun', run: () => { if (snakeApi) toast(snakeApi.toggle() ? 'Snake released. Keep your cursor moving.' : 'Snake asleep.'); } },
-      { label: 'Open GitHub', hint: 'link', run: openURL('https://github.com/cosmodrop') },
+      { label: 'Open GitHub', hint: 'link', run: openURL('https://github.com/vishnuvsdevtech') },
       { label: 'Open LinkedIn', hint: 'link', run: openURL('https://www.linkedin.com/in/vishnu-surendran-375278170') },
       ...$$('.work h3').map(h => ({ label: h.textContent, hint: 'project', run: project(h.textContent) })),
+      ...$$('.build .b-title').map(b => ({ label: b.textContent, hint: 'build', run: () => { const li = b.closest('.build'); li.querySelector('.build-row').click(); if (!li.classList.contains('is-open')) li.querySelector('.build-row').click(); li.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }); } })),
     ];
     let shown = [], sel = 0, lastFocus = null;
 
