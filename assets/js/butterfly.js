@@ -36,7 +36,7 @@
   resize();
   addEventListener('resize', resize, { passive: true });
 
-  const isLight = () => d.getAttribute('data-theme') === 'light';
+  const isLight = () => d.documentElement.getAttribute('data-theme') === 'light';
 
   /* ------------------------------------------------------------- creature */
   const B = {
