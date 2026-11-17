@@ -184,7 +184,7 @@ img,canvas,svg{display:block;}
 .avatar{
   width:34px; height:34px; border-radius:50%; flex-shrink:0;
   background:var(--card) center/cover no-repeat url('../img/avatar.jpg');
-  background-image:image-set(url('../img/avatar.webp') type('image/webp'), url('../img/avatar.jpg') type('image/jpeg'));
+  background-image:var(--avatar, url('../img/avatar/avatar-green.webp'));
   box-shadow:0 0 0 1px var(--line-2);
 }
 .brand-text strong{display:block; font-weight:600; font-size:14px; line-height:1.15; letter-spacing:-.01em;}

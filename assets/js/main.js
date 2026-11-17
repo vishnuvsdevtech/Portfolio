@@ -1480,6 +1480,9 @@
     try { localStorage.setItem('vs-theme', next); } catch (e) {}
     const meta = $('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', next === 'light' ? '#f3efe6' : '#0b0b0a');
+    try {
+      root.style.setProperty('--avatar', "url('assets/img/avatar/avatar-" + name + ".webp')");
+    } catch (e) {}
     readColors();
     flowApi && flowApi.redraw();
     sketchApi && sketchApi.repaint();
@@ -1616,6 +1619,9 @@
         b.setAttribute('aria-pressed', String(b.dataset.accent === name));
       });
     }
+    try {
+      root.style.setProperty('--avatar', "url('assets/img/avatar/avatar-" + name + ".webp')");
+    } catch (e) {}
     readColors();
     flowApi && flowApi.redraw();
     sketchApi && sketchApi.repaint();
