@@ -47,6 +47,8 @@
     flap: 0,
     rest: 0,          // >0 = resting, flap slowed
     target: null,     // click destination
+    waypoint: null,   // where it has decided to go next
+    nextWay: 0,
     energy: 1,
   };
 
@@ -84,8 +86,33 @@
     const drift = Math.sin(B.wander * 0.7) * 0.55 + Math.sin(B.wander * 1.9 + 2) * 0.22;
     B.heading += drift * dt;
 
-    let ax = Math.cos(B.heading) * 14;
-    let ay = Math.sin(B.heading) * 14;
+    let ax = Math.cos(B.heading) * 9;
+    let ay = Math.sin(B.heading) * 9;
+
+    /* Travel, not drift. It commits to a place, flies there with intent, then
+       chooses another — so it changes location often instead of orbiting. */
+    const now = performance.now();
+    if (!B.waypoint && now > B.nextWay) {
+      B.waypoint = {
+        x: 70 + Math.random() * Math.max(80, W - 140),
+        y: 90 + Math.random() * Math.max(80, H - 230),
+        t: 0,
+      };
+    }
+    if (B.waypoint) {
+      const dx = B.waypoint.x - B.x;
+      const dy = B.waypoint.y - B.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      if (dist < 28) {
+        B.waypoint = null;
+        B.nextWay = now + 500 + Math.random() * 900;   // a short hover, then move again
+      } else {
+        ax += (dx / dist) * 95;
+        ay += (dy / dist) * 95;
+        B.waypoint.t += dt;
+        if (B.waypoint.t > 6) { B.waypoint = null; B.nextWay = now + 400; }  // give up, pick again
+      }
+    }
 
     // keep it on screen with a soft spring, stronger near the edges
     const m = 90;
@@ -107,6 +134,7 @@
 
     // click target: strong pull, decays
     if (B.target) {
+      B.waypoint = null;                       // the click overrides the plan
       const dx = B.target.x - B.x, dy = B.target.y - B.y;
       const dist = Math.hypot(dx, dy) || 1;
       if (dist < 26 || B.target.t > 3) {
@@ -126,8 +154,14 @@
       ax *= 0.25; ay *= 0.25;
     }
 
-    B.vx = (B.vx + ax * dt) * 0.94;
-    B.vy = (B.vy + ay * dt) * 0.94;
+    B.vx = (B.vx + ax * dt) * 0.965;
+    B.vy = (B.vy + ay * dt) * 0.965;
+
+    // ceiling on speed: faster travel, not frantic travel
+    const sp = Math.hypot(B.vx, B.vy);
+    const MAXSP = 165;
+    if (sp > MAXSP) { B.vx = (B.vx / sp) * MAXSP; B.vy = (B.vy / sp) * MAXSP; }
+
     B.x += B.vx * dt;
     B.y += B.vy * dt;
 
