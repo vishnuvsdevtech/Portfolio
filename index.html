@@ -80,10 +80,7 @@
   (function(){
     var d=document.documentElement;
     try{ var t=localStorage.getItem('vs-theme'); if(t) d.setAttribute('data-theme',t); }catch(e){}
-    try{
-      var a=localStorage.getItem('vs-accent'); if(a) d.setAttribute('data-accent',a);
-      d.style.setProperty('--avatar', "url('assets/img/avatar/avatar-" + (a||'green') + ".webp')");
-    }catch(e){}
+    try{ var a=localStorage.getItem('vs-accent'); if(a) d.setAttribute('data-accent',a); }catch(e){}
     var seen=false; try{ seen=sessionStorage.getItem('vs-booted')==='1'; }catch(e){}
     if(seen || matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('no-boot');
     d.classList.add('js');
