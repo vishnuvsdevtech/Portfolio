@@ -89,18 +89,70 @@ def grain(shape, amount=0.045, seed=7):
     return (c * 0.7 + n * 0.3).astype(np.float32)
 
 
+def norm3(v):
+    v = np.asarray(v, dtype=np.float32)
+    return v / np.linalg.norm(v)
+
+
+def shade(g: np.ndarray, light=(-0.55, -0.42, 0.72)) -> np.ndarray:
+    """Lambert + edge glints, blended over the tonal planes.
+
+    Two earlier attempts failed and the reasons matter:
+      * raw luminance quantised -> flat poster, no form (the original complaint)
+      * normals from the luminance gradient alone -> only edges light up, the
+        face blows out to white with contour lines, plus a diagonal wedge from a
+        linear key falloff.
+
+    What works is a blend: the luminance carries the tonal planes, a *heavily
+    blurred* luminance acts as broad form for the directional term, and specular
+    is masked to high-gradient areas so glints land on glasses and lips only.
+    Thresholds are percentiles, so the band distribution is stable.
+    """
+    size = g.shape[0]
+    # broad form: blur hard, so normals describe cheeks and brow, not pores
+    hb = np.asarray(
+        Image.fromarray((g * 255).astype(np.uint8))
+             .filter(ImageFilter.GaussianBlur(size * 0.018)),
+        dtype=np.float32) / 255.0
+    gy, gx = np.gradient(hb)
+
+    relief = 3.2
+    nx, ny = -gx * relief, -gy * relief
+    nz = np.ones_like(nx)
+    nrm = np.sqrt(nx * nx + ny * ny + nz * nz) + 1e-6
+    nx, ny, nz = nx / nrm, ny / nrm, nz / nrm
+    del nrm
+
+    L = norm3(light)
+    lam = np.clip(nx * L[0] + ny * L[1] + nz * L[2], 0.0, 1.0)
+
+    H = norm3((L[0], L[1], L[2] + 1.0))
+    ndoth = np.clip(nx * H[0] + ny * H[1] + nz * H[2], 0.0, 1.0)
+    grad = np.sqrt(gx * gx + gy * gy)
+    glint_mask = np.clip(grad * 45.0, 0, 1)
+    spec = (ndoth ** 30) * glint_mask
+
+    out = 0.58 * g + 0.62 * lam + 0.42 * spec
+
+    lo, hi = np.percentile(out, 1), np.percentile(out, 99)
+    out = np.clip((out - lo) / max(hi - lo, 1e-6), 0, 1)
+    del hb, gy, gx, nx, ny, nz, lam, ndoth, grad, glint_mask, spec
+    return out
+
+
 def render(name: str, hue: float, size: int, g: np.ndarray, sat: float = 1.0) -> str:
-    idx = np.digitize(g, BANDS).astype(np.float32)
-    # NOTE: a radial spotlight was tried here and removed. With this source
-    # (bright studio background) scaling the band index radially draws
-    # concentric rings around the subject — a halo, not a lit portrait.
-    # A dark-ground version needs real background segmentation, not a mask.
-    idx = idx
-    pal = (np.array(palette(hue, sat), dtype=np.float32) / 255.0)
-    rgb = pal[idx.astype(np.uint8)]
+    lit = shade(g)
+    # five bands on percentile cut points, so the split adapts to the lighting
+    thr = np.percentile(lit, (18, 40, 62, 84))
+    idx = np.digitize(lit, thr).astype(np.uint8)
+    del lit
+    tones = palette(hue, sat)
+    # extra tone so the relief has a specular step the flat version never had
+    tones = tones[:3] + [hsl(hue, 0.22 * sat, 0.93)] + [tones[3]]
+    pal = (np.array(tones, dtype=np.float32) / 255.0)
+    rgb = pal[idx]
     del idx
-    rgb *= (1.0 - 0.30 * spotlight(g.shape)[..., None])     # gentle falloff
-    rgb += grain(rgb.shape)[..., None] * 0.55
+    rgb += grain(rgb.shape)[..., None] * 0.5
     np.clip(rgb, 0, 1, out=rgb)
     out = Image.fromarray((rgb * 255).astype(np.uint8))
     del rgb
@@ -110,6 +162,9 @@ def render(name: str, hue: float, size: int, g: np.ndarray, sat: float = 1.0) ->
     out.resize((512, 512), Image.LANCZOS).save(path, quality=88, method=6)
     if name == "green":
         out.save(os.path.join(OUT, "..", "profile-picture.png"), optimize=True)
+    with Image.open(path) as im:
+        im.resize((1024, 1024), Image.LANCZOS).save(
+            os.path.join(OUT, "..", f"portrait-{name}.webp"), quality=84, method=6)
     del out
     gc.collect()
     return path
