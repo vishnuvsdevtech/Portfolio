@@ -1,10 +1,15 @@
-"""Recolour the generated portrait across the site's accent hues.
+"""Recolour the hero portrait for every accent theme on the site.
 
-The master is a crimson relief: one key light, four or five tonal planes, cream
-highlights. Rather than re-generating per accent (eight paid calls), rotate hue in
-HSL space — that preserves the plane structure exactly — and pull saturation out
-of the top of the range so highlights stay near-cream instead of going green or
-blue, which is what a naive hue-rotate does.
+The master (assets/img/gen/master.png) is a single-hue relief illustration: flat
+planes of one colour from near-black to pale highlights. To theme it, each pixel's
+hue is rotated in OKLCH space while its lightness and chroma are kept. OKLCH is
+perceptual, so a green or teal version looks exactly as light and as contrasty as
+the red original — an HSL rotation would turn the same mid-tones into neon.
+
+Run from the repo root:  python3 tools/recolor.py
+Outputs: assets/img/portrait-<accent>.webp (1024px hero), avatar/avatar-<accent>.webp
+(512px nav avatar), portrait.webp (untouched master), profile-picture.png and
+og-image.jpg (default green theme), and a contact sheet in gen/_sheet.png.
 """
 from __future__ import annotations
 
@@ -12,107 +17,117 @@ import colorsys
 import os
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "assets", "img", "gen", "master.png")
 IMG = os.path.join(ROOT, "assets", "img")
 AV = os.path.join(IMG, "avatar")
 
-THEMES = {"green": 145, "teal": 178, "blue": 214, "violet": 268,
-          "red": 2, "amber": 38, "orange": 14}
-SRC_HUE = 12.0          # the master's dominant hue
+# must match the swatches in index.html and --accent-h in style.css
+THEMES = {"orange": 14, "red": 2, "amber": 38, "green": 145,
+          "teal": 178, "blue": 214, "violet": 268}
+DEFAULT = "green"
 
 
-def rotate(rgb: np.ndarray, to_hue: float, sat_scale: float = 1.0) -> np.ndarray:
-    mx = rgb.max(axis=2)
-    mn = rgb.min(axis=2)
-    l = (mx + mn) / 2.0
-    d = mx - mn
-    s = np.where(d == 0, 0, d / (1 - np.abs(2 * l - 1) + 1e-6))
-
-    # hue of each pixel
-    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
-    h = np.zeros_like(mx)
-    m = d > 1e-6
-    idx = m & (mx == r); h[idx] = ((g[idx] - b[idx]) / d[idx]) % 6
-    idx = m & (mx == g) & (mx != r); h[idx] = (b[idx] - r[idx]) / d[idx] + 2
-    idx = m & (mx == b) & (mx != r) & (mx != g); h[idx] = (r[idx] - g[idx]) / d[idx] + 4
-    h *= 60.0
-
-    h = (h - SRC_HUE + to_hue) % 360.0
-    # highlights stay neutral: saturation falls away at the top of the range
-    top = np.clip((l - 0.72) / 0.28, 0, 1) ** 1.5
-    s = s * sat_scale * (1 - 0.8 * top)
-
-    # back to rgb
-    def f(n):
-        k = (n + h / 30.0) % 12
-        a = s * np.minimum(l, 1 - l)
-        return l - a * np.maximum(-1, np.minimum(np.minimum(k - 3, 9 - k), 1))
-    out = np.stack([f(0), f(8), f(4)], axis=2)
-    return np.clip(out, 0, 1)
+# ---- sRGB <-> OKLab -------------------------------------------------------
+def _to_lin(c):
+    return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
 
 
-def lit(rgb: np.ndarray, to_hue: float) -> np.ndarray:
-    """Accent as lighting rather than as pigment.
+def _to_srgb(c):
+    c = np.clip(c, 0, 1)
+    return np.where(c <= 0.0031308, c * 12.92, 1.055 * c ** (1 / 2.4) - 0.055)
 
-    Full hue rotation turns a face green on a cool accent, which reads as a bug.
-    Real cinematography tints the *environment* and the shadows: skin stays warm,
-    the ground and the shadow mass take the accent. So rotate hue only where the
-    image is dark, and leave mid-tones and highlights alone.
-    """
-    mx = rgb.max(axis=2); mn = rgb.min(axis=2)
-    l = (mx + mn) / 2.0
-    # weight: 1 in deep shadow, 0 through mid-tones and highlights
-    w = np.clip((0.46 - l) / 0.46, 0, 1) ** 1.15
-    bold = rotate(rgb, to_hue)
-    out = rgb * (1 - w[..., None]) + bold * w[..., None]
-    # the ground is near-black and carries no hue of its own: tint it directly
-    ground = np.clip((0.10 - l) / 0.10, 0, 1)[..., None]
-    tint = np.array(colorsys.hls_to_rgb((to_hue % 360) / 360.0, 0.10, 0.45), np.float32)
-    return np.clip(out * (1 - ground) + tint * ground, 0, 1)
+
+def rgb_to_oklab(rgb):
+    r, g, b = np.moveaxis(_to_lin(rgb), -1, 0)
+    l = np.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+    m = np.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+    s = np.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+    return np.stack([0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+                     1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+                     0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s], -1)
+
+
+def oklab_to_lin(lab):
+    L, a, b = np.moveaxis(lab, -1, 0)
+    l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3
+    m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3
+    s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3
+    return np.stack([4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+                     -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+                     -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s], -1)
+
+
+def oklch_hue_of_hsl(h):
+    rgb = np.array(colorsys.hls_to_rgb(h / 360, 0.56, 0.92), np.float64)
+    _, a, b = rgb_to_oklab(rgb[None, None])[0, 0]
+    return np.arctan2(b, a)
+
+
+def source_hue(lab):
+    """Chroma-weighted mean hue of the master."""
+    a, b = lab[..., 1], lab[..., 2]
+    c = np.hypot(a, b)
+    return np.arctan2((np.sin(np.arctan2(b, a)) * c).sum(), (np.cos(np.arctan2(b, a)) * c).sum())
+
+
+def recolor(lab, dh):
+    L, a, b = np.moveaxis(lab, -1, 0)
+    C, h = np.hypot(a, b), np.arctan2(b, a) + dh
+    # keep L and hue, shrink chroma only as far as needed to stay inside sRGB
+    lo, hi = np.zeros_like(C), np.ones_like(C)
+    ok = lambda k: np.all((oklab_to_lin(np.stack([L, C * k * np.cos(h), C * k * np.sin(h)], -1)) >= -1e-4)
+                          & (oklab_to_lin(np.stack([L, C * k * np.cos(h), C * k * np.sin(h)], -1)) <= 1 + 1e-4), -1)
+    full = ok(hi)
+    for _ in range(10):
+        mid = (lo + hi) / 2
+        good = ok(mid)
+        lo, hi = np.where(good, mid, lo), np.where(good, hi, mid)
+    k = np.where(full, 1.0, lo)
+    out = np.stack([L, C * k * np.cos(h), C * k * np.sin(h)], -1)
+    return _to_srgb(oklab_to_lin(out))
+
+
+def save(arr, path, size, **kw):
+    Image.fromarray((np.clip(arr, 0, 1) * 255 + 0.5).astype(np.uint8)).resize(
+        (size, size) if isinstance(size, int) else size, Image.LANCZOS).save(path, **kw)
 
 
 def main():
-    im = Image.open(SRC).convert("RGB")
-    rgb = np.asarray(im, dtype=np.float32) / 255.0
+    src = Image.open(SRC).convert("RGB")
+    rgb = np.asarray(src, np.float64) / 255.0
+    lab = rgb_to_oklab(rgb)
+    h0 = source_hue(lab)
     os.makedirs(AV, exist_ok=True)
+
+    save(rgb, os.path.join(IMG, "portrait.webp"), 1024, quality=86, method=6)
     for name, hue in THEMES.items():
-        bold = Image.fromarray((rotate(rgb, hue) * 255).astype(np.uint8))
-        bold.resize((1024, 1024), Image.LANCZOS).save(
-            os.path.join(IMG, f"portrait-{name}-bold.webp"), quality=86, method=6)
-        out = lit(rgb, hue)
-        img = Image.fromarray((out * 255).astype(np.uint8))
-        img.resize((1024, 1024), Image.LANCZOS).save(
-            os.path.join(IMG, f"portrait-{name}.webp"), quality=86, method=6)
-        img.resize((512, 512), Image.LANCZOS).save(
-            os.path.join(AV, f"avatar-{name}.webp"), quality=88, method=6)
-        if name == "green":
-            img.save(os.path.join(IMG, "profile-picture.png"), optimize=True)
-            img.resize((1200, 630), Image.LANCZOS).save(
-                os.path.join(IMG, "og-image.jpg"), quality=88, optimize=True)
-        print(f"portrait-{name}.webp  {os.path.getsize(os.path.join(IMG, f'portrait-{name}.webp'))//1024}KB")
+        out = recolor(lab, oklch_hue_of_hsl(hue) - h0)
+        save(out, os.path.join(IMG, f"portrait-{name}.webp"), 1024, quality=86, method=6)
+        save(out, os.path.join(AV, f"avatar-{name}.webp"), 512, quality=88, method=6)
+        if name == DEFAULT:
+            save(out, os.path.join(IMG, "profile-picture.png"), 1024, optimize=True)
+            # og card: portrait centred on the darkest tone of the theme
+            og = Image.new("RGB", (1200, 630), tuple(int(v * 255) for v in out[8, 8]))
+            face = Image.fromarray((out * 255 + 0.5).astype(np.uint8)).resize((630, 630), Image.LANCZOS)
+            og.paste(face, (285, 0))
+            og.save(os.path.join(IMG, "og-image.jpg"), quality=88, optimize=True)
+        print(f"portrait-{name}.webp  {os.path.getsize(os.path.join(IMG, f'portrait-{name}.webp')) // 1024}KB")
 
-    # neutral: desaturated, for places with no accent context
-    out = rotate(rgb, SRC_HUE, sat_scale=0.18)
-    img = Image.fromarray((out * 255).astype(np.uint8))
-    img.resize((1024, 1024), Image.LANCZOS).save(os.path.join(IMG, "portrait-neutral.webp"), quality=86, method=6)
-    img.resize((512, 512), Image.LANCZOS).save(os.path.join(AV, "avatar-neutral.webp"), quality=88, method=6)
-
-    # contact sheet
-    tiles = [os.path.join(IMG, f"portrait-{n}.webp") for n in ["neutral", *THEMES]]
+    names = ["source", *THEMES]
     tw, pad, cols = 240, 12, 4
-    rows = (len(tiles) + cols - 1) // cols
-    sheet = Image.new("RGB", (cols * tw + pad * (cols + 1), rows * (tw + 20) + pad * (rows + 1)), (10, 12, 10))
-    from PIL import ImageDraw
+    rows = (len(names) + cols - 1) // cols
+    sheet = Image.new("RGB", (cols * tw + pad * (cols + 1), rows * (tw + 20) + pad * (rows + 1)), (10, 10, 10))
     dr = ImageDraw.Draw(sheet)
-    for i, p in enumerate(tiles):
+    for i, n in enumerate(names):
+        p = os.path.join(IMG, "portrait.webp" if n == "source" else f"portrait-{n}.webp")
         c, r = i % cols, i // cols
         x, y = pad + c * (tw + pad), pad + r * (tw + 20 + pad)
         with Image.open(p) as t:
             sheet.paste(t.convert("RGB").resize((tw, tw), Image.LANCZOS), (x, y))
-        dr.text((x + 2, y + tw + 3), os.path.basename(p).replace("portrait-", "").replace(".webp", ""), fill=(150, 200, 165))
+        dr.text((x + 2, y + tw + 3), n, fill=(200, 200, 200))
     sheet.save(os.path.join(IMG, "gen", "_sheet.png"))
     print("sheet:", os.path.join(IMG, "gen", "_sheet.png"))
 

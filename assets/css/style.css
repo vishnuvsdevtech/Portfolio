@@ -343,8 +343,8 @@ img,canvas,svg{display:block;}
 }
 .scan-img{
   position:absolute; inset:0; background:center/cover no-repeat url('../img/portrait-green.webp');
-  /* the screen-print treatment is baked into the image, so the old grayscale
-     filter is gone — applying it here would strip the themed colour back out */
+  /* one pre-coloured image per accent (tools/recolor.py); no CSS filter, it
+     would strip the themed colour back out */
   filter:none;
   transition:filter 1.2s var(--ease-out), transform 1.2s var(--ease-out);
   transform:scale(1.04);
@@ -375,7 +375,7 @@ img,canvas,svg{display:block;}
 @keyframes scan{0%{opacity:0; transform:translateY(-100%);} 10%{opacity:1;} 90%{opacity:1;} 100%{opacity:0; transform:translateY(340%);}}
 
 .face-box{
-  position:absolute; left:28%; top:24%; width:41%; height:40%; color:var(--accent);
+  position:absolute; left:30%; top:26%; width:42%; height:44%; color:var(--accent);
   opacity:0; transform:scale(1.35); transition:opacity .5s, transform .9s var(--ease-out);
 }
 .face-box .c{width:16px; height:16px;}
