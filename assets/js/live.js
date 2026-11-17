@@ -679,8 +679,22 @@
       const btn = $('.build-row', li);
       btn.addEventListener('click', () => {
         const open = !li.classList.contains('is-open');
+        const mobile = matchMedia('(max-width: 900px)').matches;
+        /* On phones the accordion is exclusive, so opening one row COLLAPSES the
+           one above it. That removes several hundred pixels of content above the
+           tapped row and the page lurches upward — the row the user just touched
+           jumps off screen. Fix: pin the tapped row by compensating scroll, and
+           on small screens skip the height animation so the compensation is
+           exact rather than chasing a 700ms transition. */
+        const anchorY = li.getBoundingClientRect().top;
+        if (mobile) list.classList.add('no-anim');
         items.forEach(o => { const on = o === li ? open : false; o.classList.toggle('is-open', on); $('.build-row', o).setAttribute('aria-expanded', String(on)); });
         previews.forEach(p => p.start());
+        if (mobile) {
+          const dy = li.getBoundingClientRect().top - anchorY;
+          if (dy) window.scrollBy(0, dy);
+          requestAnimationFrame(() => requestAnimationFrame(() => list.classList.remove('no-anim')));
+        }
       });
     });
 
