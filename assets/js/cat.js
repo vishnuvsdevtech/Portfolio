@@ -294,9 +294,11 @@
       ctx.globalAlpha = 1;
 
       // ---- body: chibi silhouette, head-heavy
+      // The silhouette needs its own value, not the page background — otherwise
+      // a dark-theme cat is just an outline floating on darkness.
       const bg = ctx.createLinearGradient(0, -30, 0, 0);
-      bg.addColorStop(0, light ? '#ffffff' : '#18211c');
-      bg.addColorStop(1, body);
+      bg.addColorStop(0, light ? '#ffffff' : `hsl(${C.hue}, 26%, 17%)`);
+      bg.addColorStop(1, light ? '#eae4d6' : `hsl(${C.hue}, 30%, 10%)`);
 
       ctx.beginPath();
       ctx.moveTo(-11.5, 0);
@@ -346,8 +348,8 @@
 
       // head
       const hg = ctx.createRadialGradient(-2, -9, 2, 0, -4, 15);
-      hg.addColorStop(0, light ? '#ffffff' : '#1b2620');
-      hg.addColorStop(1, body);
+      hg.addColorStop(0, light ? '#ffffff' : `hsl(${C.hue}, 26%, 21%)`);
+      hg.addColorStop(1, light ? '#eae4d6' : `hsl(${C.hue}, 30%, 12%)`);
       ctx.beginPath();
       ctx.ellipse(0, -4, 11.6, 10, 0, 0, TAU);
       ctx.fillStyle = hg; ctx.fill();
