@@ -256,8 +256,12 @@
     drawCreature(0);
   }
 
+  // Paint one frame synchronously. The first rAF tick can be delayed (hidden
+  // tab, heavy load, background start), and waiting on it means the creature is
+  // simply absent until it fires.
+  drawStatic();
+
   if (reduce.matches) {
-    drawStatic();
     reduce.addEventListener('change', () => {
       if (reduce.matches) { stop(); drawStatic(); } else start();
     });
