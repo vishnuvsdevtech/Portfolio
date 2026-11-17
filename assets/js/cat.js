@@ -257,146 +257,187 @@
       const light = isLight();
       const t = cat.breath;
       const breathe = 1 + Math.sin(t) * 0.014;
+      const S = 1.5;                       // readable at a glance, still unobtrusive
       const sy = cat.squashY * breathe;
       const sx = cat.squashX / breathe;
 
       ctx.save();
       ctx.translate(cat.x, cat.y);
-      ctx.scale(cat.facing * sx, sy);
-
-      // contact shadow on the border line
-      ctx.fillStyle = light ? 'rgba(30,28,24,.14)' : 'rgba(0,0,0,.35)';
-      ctx.beginPath(); ctx.ellipse(0, 1.5, 17, 3.2, 0, 0, TAU); ctx.fill();
+      ctx.scale(cat.facing * sx * S, sy * S);
 
       const rim = C.rim, body = C.body;
+      const glowA = light ? 0.07 : 0.16;
 
-      // tail (behind)
+      // ambient halo: sells "it is lit, not drawn"
+      const halo = ctx.createRadialGradient(0, -22, 3, 0, -22, 34);
+      halo.addColorStop(0, `hsla(${C.hue} 90% ${light ? 45 : 65}%, ${glowA})`);
+      halo.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath(); ctx.arc(0, -22, 34, 0, TAU); ctx.fill();
+
+      // contact shadow on the border line
+      ctx.fillStyle = light ? 'rgba(30,28,24,.16)' : 'rgba(0,0,0,.4)';
+      ctx.beginPath(); ctx.ellipse(0, 1.5, 15, 2.8, 0, 0, TAU); ctx.fill();
+
+      // ---- tail (behind everything)
       ctx.strokeStyle = rim;
-      ctx.lineWidth = 2.4;
       ctx.lineCap = 'round';
-      ctx.globalAlpha = 0.85;
-      ctx.beginPath();
-      ctx.moveTo(cat.tail[0].x - cat.x, cat.tail[0].y - cat.y);
+      ctx.globalAlpha = 0.9;
       for (let i = 1; i < cat.tail.length; i++) {
-        const n = cat.tail[i];
-        ctx.lineTo(n.x - cat.x, n.y - cat.y);
+        const a = cat.tail[i - 1], b = cat.tail[i];
+        ctx.lineWidth = 3.4 - i * 0.45;
+        ctx.beginPath();
+        ctx.moveTo(a.x - cat.x, a.y - cat.y);
+        ctx.lineTo(b.x - cat.x, b.y - cat.y);
+        ctx.stroke();
       }
-      ctx.stroke();
       ctx.globalAlpha = 1;
 
-      // body: one closed silhouette (haunch + chest)
-      ctx.beginPath();
-      ctx.moveTo(-13, 0);
-      ctx.bezierCurveTo(-15, -10, -13, -21, -6, -25);
-      ctx.bezierCurveTo(-2, -27.5, 3, -27.5, 7, -25);
-      ctx.bezierCurveTo(14, -21, 15.5, -10, 13.5, 0);
-      ctx.closePath();
-      const bg = ctx.createLinearGradient(0, -26, 0, 0);
-      bg.addColorStop(0, light ? '#ffffff' : '#141a16');
+      // ---- body: chibi silhouette, head-heavy
+      const bg = ctx.createLinearGradient(0, -30, 0, 0);
+      bg.addColorStop(0, light ? '#ffffff' : '#18211c');
       bg.addColorStop(1, body);
-      ctx.fillStyle = bg;
-      ctx.fill();
-      ctx.strokeStyle = rim; ctx.lineWidth = 1.4; ctx.stroke();
 
-      // front legs
-      for (const lx of [-7.5, 6]) {
+      ctx.beginPath();
+      ctx.moveTo(-11.5, 0);
+      ctx.bezierCurveTo(-13.5, -9, -12, -18, -6.5, -21.5);
+      ctx.bezierCurveTo(-2.5, -24, 3, -24, 7, -21.5);
+      ctx.bezierCurveTo(12.5, -18, 14, -9, 12, 0);
+      ctx.closePath();
+      ctx.fillStyle = bg; ctx.fill();
+      ctx.strokeStyle = rim; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // front paws
+      for (const lx of [-6.6, 5.4]) {
         ctx.beginPath();
-        ctx.roundRect(lx - 2.1, -12, 4.2, 12, 2.1);
-        ctx.fillStyle = body; ctx.fill();
+        ctx.roundRect(lx - 2.3, -10, 4.6, 10, 2.3);
+        ctx.fillStyle = bg; ctx.fill();
         ctx.strokeStyle = rim; ctx.lineWidth = 1.2; ctx.stroke();
+        // toe line
+        ctx.beginPath();
+        ctx.moveTo(lx - 1.1, -2.2); ctx.lineTo(lx + 1.1, -2.2);
+        ctx.strokeStyle = `hsla(${C.hue} 60% 70%, .45)`; ctx.lineWidth = 0.7; ctx.stroke();
       }
 
-      // head
+      // ---- head
       const hx = cat.headShift;
       ctx.save();
-      ctx.translate(hx, -30);
+      ctx.translate(hx, -30.5);
       ctx.rotate(cat.headTilt * 0.5);
 
       // ears
-      for (const s of [-1, 1]) {
+      for (const sgn of [-1, 1]) {
         ctx.beginPath();
-        ctx.moveTo(s * 8.6, -6.5);
-        ctx.lineTo(s * 9.4, -14.5);
-        ctx.lineTo(s * 3.2, -10.2);
+        ctx.moveTo(sgn * 7.6, -7.4);
+        ctx.quadraticCurveTo(sgn * 9.0, -15.4, sgn * 10.2, -14.6);
+        ctx.quadraticCurveTo(sgn * 11.0, -9.4, sgn * 9.4, -5.6);
         ctx.closePath();
-        ctx.fillStyle = body; ctx.fill();
+        ctx.fillStyle = bg; ctx.fill();
         ctx.strokeStyle = rim; ctx.lineWidth = 1.3; ctx.stroke();
-        // inner ear glow
+        // inner ear
         ctx.beginPath();
-        ctx.moveTo(s * 7.6, -7.6);
-        ctx.lineTo(s * 8.2, -12.4);
-        ctx.lineTo(s * 4.6, -9.6);
+        ctx.moveTo(sgn * 8.2, -7.8);
+        ctx.lineTo(sgn * 9.2, -12.6);
+        ctx.lineTo(sgn * 6.0, -8.6);
         ctx.closePath();
-        ctx.fillStyle = `hsla(${C.hue} 90% ${light ? 55 : 70}%, .45)`;
+        ctx.fillStyle = `hsla(${C.hue} 90% ${light ? 56 : 72}%, .5)`;
         ctx.fill();
       }
 
-      // head shape
+      // head
+      const hg = ctx.createRadialGradient(-2, -9, 2, 0, -4, 15);
+      hg.addColorStop(0, light ? '#ffffff' : '#1b2620');
+      hg.addColorStop(1, body);
       ctx.beginPath();
-      ctx.ellipse(0, -3, 10.6, 9.4, 0, 0, TAU);
-      ctx.fillStyle = bg; ctx.fill();
-      ctx.strokeStyle = rim; ctx.lineWidth = 1.4; ctx.stroke();
+      ctx.ellipse(0, -4, 11.6, 10, 0, 0, TAU);
+      ctx.fillStyle = hg; ctx.fill();
+      ctx.strokeStyle = rim; ctx.lineWidth = 1.5; ctx.stroke();
 
-      // eyes
-      const open = cat.state === 'sleep' ? 0.06 : cat.eyeOpen;
-      const ey = -4.2;
-      for (const s of [-1, 1]) {
-        const ex = s * 4.3;
+      // cheek blush
+      for (const sgn of [-1, 1]) {
+        const bl = ctx.createRadialGradient(sgn * 7.4, 0.4, 0.4, sgn * 7.4, 0.4, 4.2);
+        bl.addColorStop(0, `hsla(${C.hue + 20} 90% 65%, ${light ? 0.22 : 0.3})`);
+        bl.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = bl;
+        ctx.beginPath(); ctx.arc(sgn * 7.4, 0.4, 4.2, 0, TAU); ctx.fill();
+      }
+
+      // ---- eyes: big, two-tone iris, one highlight
+      const open = cat.state === 'sleep' ? 0.05 : cat.eyeOpen;
+      for (const sgn of [-1, 1]) {
+        const ex = sgn * 4.4, ry = 3.9 * open + 0.3, rx = 3.0;
         ctx.save();
-        ctx.translate(ex, ey);
-        // eye socket
+        ctx.translate(ex, -4.6);
         ctx.beginPath();
-        ctx.ellipse(0, 0, 2.5, 3.1 * open + 0.25, 0, 0, TAU);
-        ctx.fillStyle = light ? '#fdfaf3' : '#07110c';
+        ctx.ellipse(0, 0, rx, ry, 0, 0, TAU);
+        ctx.fillStyle = light ? '#fffdf7' : '#04100a';
         ctx.fill();
-        // iris
-        if (open > 0.25) {
+        if (open > 0.2) {
           ctx.beginPath();
-          ctx.ellipse(cat.look.x * 0.9, cat.look.y * 0.8, 1.5, 2.1 * open, 0, 0, TAU);
+          ctx.ellipse(cat.look.x * 1.0, cat.look.y * 0.9, 2.0, 2.7 * open, 0, 0, TAU);
           ctx.fillStyle = C.eye;
-          ctx.shadowColor = C.eye; ctx.shadowBlur = 6;
+          ctx.shadowColor = C.eye; ctx.shadowBlur = 7;
           ctx.fill();
           ctx.shadowBlur = 0;
+          // darker pupil inside the iris
+          ctx.beginPath();
+          ctx.ellipse(cat.look.x * 1.0, cat.look.y * 0.9, 0.9, 1.7 * open, 0, 0, TAU);
+          ctx.fillStyle = light ? `hsl(${C.hue} 70% 30%)` : '#04100a';
+          ctx.fill();
           // highlight
           ctx.beginPath();
-          ctx.arc(-0.5, -0.8, 0.55, 0, TAU);
-          ctx.fillStyle = light ? '#fff' : 'rgba(255,255,255,.85)';
+          ctx.arc(-0.8, -1.4, 0.85, 0, TAU);
+          ctx.fillStyle = 'rgba(255,255,255,.92)';
           ctx.fill();
         }
         ctx.restore();
       }
 
-      // nose + whiskers
+      // nose
       ctx.beginPath();
-      ctx.moveTo(0, 0.4); ctx.lineTo(-1.2, 1.7); ctx.lineTo(1.2, 1.7);
+      ctx.moveTo(0, 1.1); ctx.lineTo(-1.3, 2.6); ctx.lineTo(1.3, 2.6);
       ctx.closePath();
-      ctx.fillStyle = rim; ctx.fill();
-      ctx.strokeStyle = `hsla(${C.hue} 60% 70%, .5)`;
-      ctx.lineWidth = 0.7;
-      for (const s of [-1, 1]) {
-        for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = `hsl(${C.hue + 15} 80% ${light ? 48 : 66}%)`;
+      ctx.fill();
+
+      // mouth: small cat omega, unless yawning
+      if (cat.state !== 'yawn') {
+        ctx.strokeStyle = `hsla(${C.hue} 50% ${light ? 40 : 80}%, .75)`;
+        ctx.lineWidth = 0.8; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, 2.8);
+        ctx.quadraticCurveTo(-1.5, 4.6, -2.8, 3.1);
+        ctx.moveTo(0, 2.8);
+        ctx.quadraticCurveTo(1.5, 4.6, 2.8, 3.1);
+        ctx.stroke();
+      }
+
+      // whiskers: two per side, faint
+      ctx.strokeStyle = `hsla(${C.hue} 55% ${light ? 45 : 75}%, .35)`;
+      ctx.lineWidth = 0.65;
+      for (const sgn of [-1, 1]) {
+        for (let i = 0; i < 2; i++) {
           ctx.beginPath();
-          ctx.moveTo(s * 3, 1.4);
-          ctx.quadraticCurveTo(s * 9, 0.4 + i * 1.6, s * 13, -0.4 + i * 2.1);
+          ctx.moveTo(sgn * 4.6, 1.6 + i * 1.1);
+          ctx.quadraticCurveTo(sgn * 9.4, 1.1 + i * 2.0, sgn * 13.2, 0.4 + i * 2.6);
           ctx.stroke();
         }
       }
 
-      // yawn: open mouth + closed eyes
       if (cat.state === 'yawn') {
         const k = Math.sin(Math.min(1, cat.st / 1300) * Math.PI);
         ctx.beginPath();
-        ctx.ellipse(0, 4.4, 2.2 + k * 1.1, 1.2 + k * 2.6, 0, 0, TAU);
+        ctx.ellipse(0, 5.0, 2.3 + k * 1.2, 1.3 + k * 2.9, 0, 0, TAU);
         ctx.fillStyle = light ? '#3a352c' : '#04120b';
         ctx.fill();
         ctx.strokeStyle = rim; ctx.lineWidth = 1; ctx.stroke();
       }
 
-      // collar: one glowing pip, the "futuristic" note
+      // collar pip
       ctx.beginPath();
-      ctx.arc(0, -14.5, 1.5, 0, TAU);
+      ctx.arc(0, -14.8, 1.6, 0, TAU);
       ctx.fillStyle = C.eye;
-      ctx.shadowColor = C.eye; ctx.shadowBlur = 8; ctx.fill();
+      ctx.shadowColor = C.eye; ctx.shadowBlur = 9; ctx.fill();
       ctx.shadowBlur = 0;
 
       ctx.restore();   // head
