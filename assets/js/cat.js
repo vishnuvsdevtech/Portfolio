@@ -47,8 +47,8 @@
       C = {
         hue: h,
         body: light ? '#f4efe4' : '#0b0e0c',
-        rim: `hsl(${h} 70% ${light ? 42 : 62}%)`,
-        eye: `hsl(${h} 95% ${light ? 44 : 66}%)`,
+        rim: `hsl(${h}, 70%, ${light ? 42 : 62}%)`,
+        eye: `hsl(${h}, 95%, ${light ? 44 : 66}%)`,
       };
     }
 
@@ -270,7 +270,7 @@
 
       // ambient halo: sells "it is lit, not drawn"
       const halo = ctx.createRadialGradient(0, -22, 3, 0, -22, 34);
-      halo.addColorStop(0, `hsla(${C.hue} 90% ${light ? 45 : 65}%, ${glowA})`);
+      halo.addColorStop(0, `hsla(${C.hue}, 90%, ${light ? 45 : 65}%, ${glowA})`);
       halo.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = halo;
       ctx.beginPath(); ctx.arc(0, -22, 34, 0, TAU); ctx.fill();
@@ -316,7 +316,7 @@
         // toe line
         ctx.beginPath();
         ctx.moveTo(lx - 1.1, -2.2); ctx.lineTo(lx + 1.1, -2.2);
-        ctx.strokeStyle = `hsla(${C.hue} 60% 70%, .45)`; ctx.lineWidth = 0.7; ctx.stroke();
+        ctx.strokeStyle = `hsla(${C.hue}, 60%, 70%, .45)`; ctx.lineWidth = 0.7; ctx.stroke();
       }
 
       // ---- head
@@ -340,7 +340,7 @@
         ctx.lineTo(sgn * 9.2, -12.6);
         ctx.lineTo(sgn * 6.0, -8.6);
         ctx.closePath();
-        ctx.fillStyle = `hsla(${C.hue} 90% ${light ? 56 : 72}%, .5)`;
+        ctx.fillStyle = `hsla(${C.hue}, 90%, ${light ? 56 : 72}%, .5)`;
         ctx.fill();
       }
 
@@ -356,7 +356,7 @@
       // cheek blush
       for (const sgn of [-1, 1]) {
         const bl = ctx.createRadialGradient(sgn * 7.4, 0.4, 0.4, sgn * 7.4, 0.4, 4.2);
-        bl.addColorStop(0, `hsla(${C.hue + 20} 90% 65%, ${light ? 0.22 : 0.3})`);
+        bl.addColorStop(0, `hsla(${C.hue + 20}, 90%, 65%, ${light ? 0.22 : 0.3})`);
         bl.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = bl;
         ctx.beginPath(); ctx.arc(sgn * 7.4, 0.4, 4.2, 0, TAU); ctx.fill();
@@ -382,7 +382,7 @@
           // darker pupil inside the iris
           ctx.beginPath();
           ctx.ellipse(cat.look.x * 1.0, cat.look.y * 0.9, 0.9, 1.7 * open, 0, 0, TAU);
-          ctx.fillStyle = light ? `hsl(${C.hue} 70% 30%)` : '#04100a';
+          ctx.fillStyle = light ? `hsl(${C.hue}, 70%, 30%)` : '#04100a';
           ctx.fill();
           // highlight
           ctx.beginPath();
@@ -397,12 +397,12 @@
       ctx.beginPath();
       ctx.moveTo(0, 1.1); ctx.lineTo(-1.3, 2.6); ctx.lineTo(1.3, 2.6);
       ctx.closePath();
-      ctx.fillStyle = `hsl(${C.hue + 15} 80% ${light ? 48 : 66}%)`;
+      ctx.fillStyle = `hsl(${C.hue + 15}, 80%, ${light ? 48 : 66}%)`;
       ctx.fill();
 
       // mouth: small cat omega, unless yawning
       if (cat.state !== 'yawn') {
-        ctx.strokeStyle = `hsla(${C.hue} 50% ${light ? 40 : 80}%, .75)`;
+        ctx.strokeStyle = `hsla(${C.hue}, 50%, ${light ? 40 : 80}%, .75)`;
         ctx.lineWidth = 0.8; ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(0, 2.8);
@@ -413,7 +413,7 @@
       }
 
       // whiskers: two per side, faint
-      ctx.strokeStyle = `hsla(${C.hue} 55% ${light ? 45 : 75}%, .35)`;
+      ctx.strokeStyle = `hsla(${C.hue}, 55%, ${light ? 45 : 75}%, .35)`;
       ctx.lineWidth = 0.65;
       for (const sgn of [-1, 1]) {
         for (let i = 0; i < 2; i++) {
@@ -446,7 +446,7 @@
       // dust motes
       ctx.globalCompositeOperation = 'lighter';
       for (const p of cat.dust) {
-        ctx.fillStyle = `hsla(${C.hue} 90% 70%, ${0.4 * p.life})`;
+        ctx.fillStyle = `hsla(${C.hue}, 90%, 70%, ${0.4 * p.life})`;
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill();
       }
       ctx.globalCompositeOperation = 'source-over';
