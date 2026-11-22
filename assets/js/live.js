@@ -908,7 +908,64 @@
       return a;
     }
 
-    const MAKERS = { buddy, mqtt, hue, marbles };
+    /* --- Nine months, organised: forty weeks as ticks around a ring --- */
+    function weeks(cv) {
+      const st = fit(cv, () => a && a.draw());
+      const T = 24;                                  // one sweep, seconds
+      function draw(t) {
+        const ctx = begin(st); if (!st.w) return;
+        const w = st.w, h = st.h;
+        const cx = w * 0.5, cy = h * 0.5, R = Math.min(w, h) * 0.36;
+        const top = -Math.PI / 2;
+        const wk = 1 + ((t % T) / T) * 39;           // 1 → 40, then round again
+        const ang = (n) => top + (n / 40) * Math.PI * 2;
+
+        // the three trimesters as quiet bands behind the ticks
+        [[0, 13], [13, 28], [28, 40]].forEach(([s, e], i) => {
+          ctx.strokeStyle = rgba(C.ink, [0.16, 0.11, 0.07][i]);
+          ctx.lineWidth = 7; ctx.lineCap = 'butt';
+          ctx.beginPath(); ctx.arc(cx, cy, R, ang(s), ang(e)); ctx.stroke();
+        });
+
+        // a tick a week; the ones she has passed take the accent
+        for (let i = 0; i <= 40; i++) {
+          const a1 = ang(i), major = i % 4 === 0;
+          const r1 = R + 11, r2 = R + (major ? 24 : 17);
+          ctx.strokeStyle = i <= wk ? C.accent : rgba(C.ink, major ? 0.26 : 0.14);
+          ctx.lineWidth = major ? 1.7 : 1;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(a1) * r1, cy + Math.sin(a1) * r1);
+          ctx.lineTo(cx + Math.cos(a1) * r2, cy + Math.sin(a1) * r2);
+          ctx.stroke();
+        }
+
+        // the scale itself: 10, 20, 30, 40 outside their ticks
+        ctx.fillStyle = C.muted; ctx.font = MONO(9);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        [10, 20, 30, 40].forEach((n) => {
+          const a2 = ang(n);
+          ctx.fillText(String(n), cx + Math.cos(a2) * (R + 34), cy + Math.sin(a2) * (R + 34));
+        });
+
+        // where she is now
+        const dx = cx + Math.cos(ang(wk)) * R, dy = cy + Math.sin(ang(wk)) * R;
+        ctx.fillStyle = C.card; ctx.beginPath(); ctx.arc(dx, dy, 7.5, 0, 7); ctx.fill();
+        ctx.fillStyle = C.accent; ctx.beginPath(); ctx.arc(dx, dy, 5, 0, 7); ctx.fill();
+
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = C.ink; ctx.font = MONO(28);
+        ctx.fillText(String(Math.floor(wk)), cx, cy - 7);
+        ctx.fillStyle = C.muted; ctx.font = MONO(9);
+        ctx.fillText('of 40 weeks', cx, cy + 16);
+        ctx.fillText(wk < 13 ? 'first trimester' : wk < 28 ? 'second trimester' : 'third trimester', cx, cy + 34);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      }
+      const a = animate(cv, draw, { enabled: () => cv.closest('.build').classList.contains('is-open'), still: 5.2 });
+      themeFns.push(() => a.draw());
+      return a;
+    }
+
+    const MAKERS = { buddy, mqtt, hue, marbles, weeks };
     $$('canvas[data-build-viz]', list).forEach(cv => { const m = MAKERS[cv.dataset.buildViz]; if (m) previews.push(m(cv)); });
   }
 

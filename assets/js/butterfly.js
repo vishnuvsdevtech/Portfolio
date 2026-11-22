@@ -23,9 +23,23 @@
 
   let W = 0, H = 0, dpr = 1;
 
+  /* Where it is allowed to fly. Roaming the whole viewport meant it landed on
+     body copy — twice, over a card and over a paragraph. A creature that has to
+     be apologised for is decoration that costs more than it gives, so it now
+     keeps to the right-hand margin, where the portrait and the build previews
+     already sit, and it does not fly at all on screens too narrow to have a
+     margin (there, any position is over text). */
+  const needsMargin = 1200;
+  const corridor = () => ({
+    x0: Math.max(W - 200, W * 0.80),   // the empty strip beyond the content column
+    x1: W - 34,
+    y0: 110, y1: H - 170,
+  });
+
   function resize() {
     dpr = Math.min(devicePixelRatio || 1, 2);
     W = innerWidth; H = innerHeight;
+    canvas.style.display = W < needsMargin ? 'none' : 'block';
     canvas.width = Math.floor(W * dpr);   // resizing the bitmap clears it
     canvas.height = Math.floor(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -40,7 +54,7 @@
 
   /* ------------------------------------------------------------- creature */
   const B = {
-    x: W * 0.62, y: H * 0.42,
+    x: W - 120, y: H * 0.42,
     vx: 0, vy: 0,
     heading: -0.4,
     wander: Math.random() * 1000,
@@ -64,7 +78,12 @@
 
   addEventListener('pointerdown', (e) => {
     // dart toward the click, and shed pollen there
-    B.target = { x: e.clientX, y: e.clientY, t: 0 };
+    const c0 = corridor();
+    B.target = {
+      x: Math.min(Math.max(e.clientX, c0.x0), c0.x1),
+      y: Math.min(Math.max(e.clientY, c0.y0), c0.y1),
+      t: 0,
+    };
     B.rest = 0;
     for (let i = 0; i < 14; i++) spawnPetal(e.clientX, e.clientY, 1.6);
   }, { passive: true });
@@ -93,9 +112,10 @@
        chooses another — so it changes location often instead of orbiting. */
     const now = performance.now();
     if (!B.waypoint && now > B.nextWay) {
+      const c = corridor();
       B.waypoint = {
-        x: 70 + Math.random() * Math.max(80, W - 140),
-        y: 90 + Math.random() * Math.max(80, H - 230),
+        x: c.x0 + Math.random() * Math.max(40, c.x1 - c.x0),
+        y: c.y0 + Math.random() * Math.max(40, c.y1 - c.y0),
         t: 0,
       };
     }
@@ -114,12 +134,12 @@
       }
     }
 
-    // keep it on screen with a soft spring, stronger near the edges
-    const m = 90;
-    if (B.x < m) ax += (m - B.x) * 1.1;
-    if (B.x > W - m) ax -= (B.x - (W - m)) * 1.1;
-    if (B.y < m) ay += (m - B.y) * 1.1;
-    if (B.y > H - m) ay -= (B.y - (H - m)) * 1.1;
+    // keep it in the margin with a soft spring, stronger near the edges
+    const c = corridor();
+    if (B.x < c.x0) ax += (c.x0 - B.x) * 1.4;
+    if (B.x > c.x1) ax -= (B.x - c.x1) * 1.4;
+    if (B.y < c.y0) ay += (c.y0 - B.y) * 1.1;
+    if (B.y > c.y1) ay -= (B.y - c.y1) * 1.1;
 
     // cursor: shy. Repelled inside 150px, gently.
     if (pointer.active) {
@@ -196,6 +216,7 @@
   const hsl = (h, s, l, a) => `hsla(${Math.round(h)}, ${s}%, ${l}%, ${a})`;
 
   function updatePalette() {
+    if (W < needsMargin) return;          // no margin, no creature
     const H = accentHue();
     const cool = H >= 60 && H <= 240;              // green / teal / blue / violet-ish
     const h1 = cool ? 10 + (H * 0.12) % 18         // warm: red -> orange
