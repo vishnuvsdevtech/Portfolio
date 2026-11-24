@@ -18,11 +18,12 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   if (reduce.matches) return;                    // reduced motion: the photograph is the hero
 
-  const MAX_POINTS = MOBILE_POINTS();
-  function MOBILE_POINTS() { return matchMedia('(max-width: 700px)').matches ? 18000 : 30000; }
+  const BUDGET = POINT_BUDGET();
+  function POINT_BUDGET() { return matchMedia('(max-width: 700px)').matches ? 34000 : 64000; }
   const MOBILE = matchMedia('(max-width: 700px)').matches;
-  const STEP = 2;   // 2 px grid: ~4x the points of the first attempt, which read as a
-                    // distorted photograph rather than a sculpture
+  let STEP = 2;      // set from the budget once the card size is known, so the grid
+                     // is even everywhere: a fixed step plus culling is what made
+                     // some areas dense and others bare
   const DPR = Math.min(2, window.devicePixelRatio || 1);
 
   const canvas = document.createElement('canvas');
@@ -61,6 +62,7 @@
       // Sample the photograph exactly as CSS displays it: `background: center/cover`
       // crops rather than stretches. Drawing it into W x H directly squashed the
       // face to the card's aspect — that was the "distorted image" report.
+      STEP = Math.max(2, Math.ceil(Math.sqrt((W * H) / BUDGET)));
       const sw = Math.max(1, Math.round(W / STEP)), sh = Math.max(1, Math.round(H / STEP));
       const iw = image.naturalWidth || image.width, ih = image.naturalHeight || image.height;
       const scale = Math.max(sw / iw, sh / ih);              // cover
@@ -74,14 +76,6 @@
       const data = oc.getImageData(0, 0, sw, sh).data;
 
       const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#63d9c4';
-
-      // background colour estimate: the four corners of the visible crop
-      const at = (px_, py) => {
-        const j = ((py * sw) + px_) * 4;
-        return [data[j], data[j + 1], data[j + 2]];
-      };
-      const corners = [at(1, 1), at(sw - 2, 1), at(1, sh - 2), at(sw - 2, sh - 2)];
-      const bg = [0, 1, 2].map((c) => corners.reduce((s2, p2) => s2 + p2[c], 0) / corners.length);
 
       const out = [];
       for (let y = 0; y < sh; y++) {
@@ -97,31 +91,30 @@
           const lr = (data[jr - 3] * 0.299 + data[jr - 2] * 0.587 + data[jr - 1] * 0.114) / 255;
           const ld = (data[jd - 3] * 0.299 + data[jd - 2] * 0.587 + data[jd - 1] * 0.114) / 255;
           const edge = Math.abs(lum - lr) + Math.abs(lum - ld);
-          // skip what is merely backdrop: close to the corner colour and flat
-          const dist = Math.abs(data[i] - bg[0]) + Math.abs(data[i + 1] - bg[1]) + Math.abs(data[i + 2] - bg[2]);
-          if (dist < 30 && lum < 0.35) continue;
-          if (lum < 0.035) continue;      // pure black stays black
+          // the backdrop is flat and dark; fade it instead of deleting it, so the
+          // density has no visible cliff where the mask ends
+          let keep = 1;
+          if (lum < 0.24 && edge < 0.26) {
+            keep = 0.22;
+            if (lum < 0.16) continue;      // deep background: not worth a point
+          }
           out.push({
-            x: x * STEP + STEP / 2,
-            y: y * STEP + STEP / 2,
+            // a little scatter breaks the visible grid without changing density
+            x: x * STEP + STEP / 2 + (Math.random() - 0.5) * STEP * 0.55,
+            y: y * STEP + STEP / 2 + (Math.random() - 0.5) * STEP * 0.55,
             // depth from brightness: dark hair sits back, the lit face forward
             z: (0.5 - lum) * 340,
             // one colour, alpha from the original brightness: the face is read by
             // density and light rather than by re-printing the photograph in dots
             r: accent,
-            a: 0.14 + 0.86 * Math.pow(lum, 0.8),
+            a: (0.2 + 0.8 * Math.pow(lum, 0.8)) * keep,
             edge,
             big: lum > 0.5,
           });
         }
       }
       // keep the point budget: prefer the brighter (more defining) points
-      if (out.length > MAX_POINTS) {
-        // keep detail where the face actually changes: a point on an edge carries
-        // more of the likeness than one in the middle of a cheek
-        out.sort((a, b) => b.edge - a.edge);
-        out.length = MAX_POINTS;
-      }
+
       pts = out;
       t0 = performance.now();
       draw(performance.now());
@@ -170,9 +163,9 @@
       const px = px3 + (p.x - px3) * m;
       const py = py3 + (p.y - py3) * m;
 
-      const size = (p.big ? 2.2 : 1.6) * (0.8 + 0.4 * s) * (1 - 0.12 * m);
+      const size = (p.big ? 2.0 : 1.65) * (0.95 + 0.12 * s) * (1 - 0.12 * m);
       ctx.fillStyle = p.r;
-      ctx.globalAlpha = Math.min(1, p.a * (0.6 + 0.55 * s));
+      ctx.globalAlpha = Math.min(1, p.a * (0.85 + 0.2 * s));
       ctx.fillRect(px, py, size, size);
     }
     ctx.globalAlpha = 1;
