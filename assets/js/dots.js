@@ -104,7 +104,7 @@
             // one colour, alpha from the original brightness: the face is read by
             // density and light rather than by re-printing the photograph in dots
             r: accent,
-            a: (0.42 + 0.58 * Math.pow(lum, 0.7)) * keep,
+            a: (0.22 + 0.78 * Math.pow(lum, 0.85)) * keep,
             edge,
             big: lum > 0.5,
           });
@@ -163,7 +163,7 @@
       const px = px3 + (p.x - px3) * m;
       const py = py3 + (p.y - py3) * m;
 
-      const size = (p.big ? 2.1 : 1.8) * (0.95 + 0.12 * s) * (1 - 0.12 * m);
+      const size = (p.big ? 1.95 : 1.65) * (0.95 + 0.12 * s) * (1 - 0.12 * m);
       ctx.fillStyle = p.r;
       ctx.globalAlpha = Math.min(1, p.a * (0.85 + 0.2 * s));
       ctx.fillRect(px, py, size, size);
