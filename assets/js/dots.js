@@ -19,9 +19,10 @@
   if (reduce.matches) return;                    // reduced motion: the photograph is the hero
 
   const MAX_POINTS = MOBILE_POINTS();
-  function MOBILE_POINTS() { return matchMedia('(max-width: 700px)').matches ? 15000 : 24000; }
+  function MOBILE_POINTS() { return matchMedia('(max-width: 700px)').matches ? 18000 : 30000; }
   const MOBILE = matchMedia('(max-width: 700px)').matches;
-  const STEP = 3;   // same grid everywhere: a bigger step on phones reads as faint noise
+  const STEP = 2;   // 2 px grid: ~4x the points of the first attempt, which read as a
+                    // distorted photograph rather than a sculpture
   const DPR = Math.min(2, window.devicePixelRatio || 1);
 
   const canvas = document.createElement('canvas');
@@ -33,6 +34,7 @@
   let pts = [], W = 0, H = 0, raf = 0;
   let rotX = 0, rotY = 0, tRotX = 0, tRotY = 0;   // pointer-driven, eased
   let morph = 0, morphTarget = 0;                 // 0 = sculpture, 1 = photograph
+  let stride = 1, frameMs = 16, lastFrame = 0, samples = 0;   // adaptive detail
   let t0 = performance.now();
   let visible = true;
 
@@ -56,15 +58,31 @@
       canvas.style.height = H + 'px';
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-      // sample the photograph at STEP, keeping only pixels that carry ink
-      const off = document.createElement('canvas');
+      // Sample the photograph exactly as CSS displays it: `background: center/cover`
+      // crops rather than stretches. Drawing it into W x H directly squashed the
+      // face to the card's aspect — that was the "distorted image" report.
       const sw = Math.max(1, Math.round(W / STEP)), sh = Math.max(1, Math.round(H / STEP));
+      const iw = image.naturalWidth || image.width, ih = image.naturalHeight || image.height;
+      const scale = Math.max(sw / iw, sh / ih);              // cover
+      const dw = iw * scale, dh = ih * scale;
+      const dx = (sw - dw) / 2, dy = (sh - dh) / 2;          // centre
+
+      const off = document.createElement('canvas');
       off.width = sw; off.height = sh;
       const oc = off.getContext('2d', { willReadFrequently: true });
-      oc.drawImage(image, 0, 0, sw, sh);
+      oc.drawImage(image, dx, dy, dw, dh);
       const data = oc.getImageData(0, 0, sw, sh).data;
 
       const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#63d9c4';
+
+      // background colour estimate: the four corners of the visible crop
+      const at = (px_, py) => {
+        const j = ((py * sw) + px_) * 4;
+        return [data[j], data[j + 1], data[j + 2]];
+      };
+      const corners = [at(1, 1), at(sw - 2, 1), at(1, sh - 2), at(sw - 2, sh - 2)];
+      const bg = [0, 1, 2].map((c) => corners.reduce((s2, p2) => s2 + p2[c], 0) / corners.length);
+
       const out = [];
       for (let y = 0; y < sh; y++) {
         for (let x = 0; x < sw; x++) {
@@ -72,22 +90,36 @@
           const a = data[i + 3];
           if (a < 40) continue;
           const lum = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114) / 255;
+          // cheap gradient: how different this pixel is from its right and lower
+          // neighbour, used to rank points when the budget has to cut some
+          const jr = ((y * sw + Math.min(x + 1, sw - 1)) * 4) + 3;
+          const jd = ((Math.min(y + 1, sh - 1) * sw + x) * 4) + 3;
+          const lr = (data[jr - 3] * 0.299 + data[jr - 2] * 0.587 + data[jr - 1] * 0.114) / 255;
+          const ld = (data[jd - 3] * 0.299 + data[jd - 2] * 0.587 + data[jd - 1] * 0.114) / 255;
+          const edge = Math.abs(lum - lr) + Math.abs(lum - ld);
+          // skip what is merely backdrop: close to the corner colour and flat
+          const dist = Math.abs(data[i] - bg[0]) + Math.abs(data[i + 1] - bg[1]) + Math.abs(data[i + 2] - bg[2]);
+          if (dist < 30 && lum < 0.35) continue;
+          if (lum < 0.035) continue;      // pure black stays black
           out.push({
             x: x * STEP + STEP / 2,
             y: y * STEP + STEP / 2,
             // depth from brightness: dark hair sits back, the lit face forward
-            z: (0.5 - lum) * 260,
+            z: (0.5 - lum) * 340,
             // one colour, alpha from the original brightness: the face is read by
             // density and light rather than by re-printing the photograph in dots
             r: accent,
-            a: 0.14 + 0.86 * lum,
-            big: lum > 0.55,
+            a: 0.14 + 0.86 * Math.pow(lum, 0.8),
+            edge,
+            big: lum > 0.5,
           });
         }
       }
       // keep the point budget: prefer the brighter (more defining) points
       if (out.length > MAX_POINTS) {
-        out.sort((a, b) => (b.big ? 1 : 0) - (a.big ? 1 : 0));
+        // keep detail where the face actually changes: a point on an edge carries
+        // more of the likeness than one in the middle of a cheek
+        out.sort((a, b) => b.edge - a.edge);
         out.length = MAX_POINTS;
       }
       pts = out;
@@ -114,14 +146,14 @@
     const cx = W / 2, cy = H / 2;
     // deliberate idle sway on top of the pointer offset: without it the cloud is a
     // flat dither of a photograph and the click has nothing to resolve from
-    const ry = (rotY * Math.PI) / 180 + Math.sin(t * 0.3) * 0.1;
+    const ry = (rotY * Math.PI) / 180 + Math.sin(t * 0.26) * 0.17;
     const rx = (rotX * Math.PI) / 180 + Math.cos(t * 0.31) * 0.05;
     const cosY = Math.cos(ry), sinY = Math.sin(ry);
     const cosX = Math.cos(rx), sinX = Math.sin(rx);
     const focal = 900;
     const m = morph * morph * (3 - 2 * morph);         // smoothstep
 
-    for (let k = 0; k < pts.length; k++) {
+    for (let k = 0; k < pts.length; k += stride) {
       const p = pts[k];
       const dx = p.x - cx, dy = p.y - cy;
 
@@ -138,15 +170,26 @@
       const px = px3 + (p.x - px3) * m;
       const py = py3 + (p.y - py3) * m;
 
-      const size = (p.big ? 2.1 : 1.5) * (0.8 + 0.4 * s) * (1 - 0.12 * m);
+      const size = (p.big ? 2.2 : 1.6) * (0.8 + 0.4 * s) * (1 - 0.12 * m);
       ctx.fillStyle = p.r;
-      ctx.globalAlpha = Math.min(1, p.a * (0.55 + 0.6 * s));
+      ctx.globalAlpha = Math.min(1, p.a * (0.6 + 0.55 * s));
       ctx.fillRect(px, py, size, size);
     }
     ctx.globalAlpha = 1;
 
     // once fully morphed the photograph underneath is the real thing
     canvas.style.opacity = String(1 - smoothstep(0.92, 1, morph));
+
+    // keep the frame honest: on a slow machine, thin the cloud rather than stutter
+    if (lastFrame) {
+      frameMs = frameMs * 0.9 + (now - lastFrame) * 0.1;
+      if (++samples > 45) {
+        samples = 0;
+        if (frameMs > 21 && stride < 3) stride++;
+        else if (frameMs < 13 && stride > 1) stride--;
+      }
+    }
+    lastFrame = now;
 
     if (visible) raf = requestAnimationFrame(draw);
   }
