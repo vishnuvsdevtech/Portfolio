@@ -1006,3 +1006,25 @@ img,canvas,svg{display:block;}
 @media (prefers-reduced-motion: reduce){
   .core-rings i,.apk-halo,.tool-chain li{animation:none !important;}
 }
+
+/* the point-cloud portrait (assets/js/dots.js). It sits above the photograph and
+   below the HUD; pointer-events:none so the card's own tilt and click still work */
+.dot-cloud{
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+  transition:opacity .28s linear;
+}
+.scan-card:hover .dot-cloud{ cursor:crosshair; }
+
+/* the one-time affordance for the point cloud; it removes itself on first click */
+.dot-hint{
+  position:absolute; left:50%; bottom:58px; transform:translateX(-50%); z-index:4;   /* clears the HUD chip row */
+  font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-2);
+  background:color-mix(in srgb, var(--bg) 78%, transparent); border:1px solid var(--line);
+  padding:5px 10px; border-radius:999px; pointer-events:none;
+  animation:dotHintPulse 2.4s ease-in-out infinite;
+  transition:opacity .3s ease, transform .3s ease;
+}
+/* the pulse animation would otherwise outrank this opacity, so it is stopped */
+.dot-hint.gone{animation:none; opacity:0; transform:translateX(-50%) translateY(6px)}
+@keyframes dotHintPulse{0%,100%{opacity:.55}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.dot-hint{animation:none}}
