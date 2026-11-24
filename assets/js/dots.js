@@ -19,7 +19,7 @@
   if (reduce.matches) return;                    // reduced motion: the photograph is the hero
 
   const BUDGET = POINT_BUDGET();
-  function POINT_BUDGET() { return matchMedia('(max-width: 700px)').matches ? 90000 : 170000; }
+  function POINT_BUDGET() { return matchMedia('(max-width: 700px)').matches ? 22000 : 42000; }
   const MOBILE = matchMedia('(max-width: 700px)').matches;
   let STEP = 2;      // set from the budget once the card size is known, so the grid
                      // is even everywhere: a fixed step plus culling is what made
@@ -92,13 +92,9 @@
           const lr = (data[jr - 3] * 0.299 + data[jr - 2] * 0.587 + data[jr - 1] * 0.114) / 255;
           const ld = (data[jd - 3] * 0.299 + data[jd - 2] * 0.587 + data[jd - 1] * 0.114) / 255;
           const edge = Math.abs(lum - lr) + Math.abs(lum - ld);
-          // the backdrop is flat and dark; fade it instead of deleting it, so the
-          // density has no visible cliff where the mask ends
-          let keep = 1;
-          if (lum < 0.24 && edge < 0.26) {
-            keep = 0.14;
-            if (lum < 0.16) continue;      // deep background: not worth a point
-          }
+          // every pixel gets a point: the whole image is the sculpture, so shadow
+          // and hair are as present as the lit cheek
+          const keep = 1;
           out.push({
             // a little scatter breaks the visible grid without changing density
             x: x * STEP + STEP / 2 + (Math.random() - 0.5) * STEP * 0.55,
@@ -108,7 +104,7 @@
             // one colour, alpha from the original brightness: the face is read by
             // density and light rather than by re-printing the photograph in dots
             r: accent,
-            a: (0.2 + 0.8 * Math.pow(lum, 0.8)) * keep,
+            a: (0.42 + 0.58 * Math.pow(lum, 0.7)) * keep,
             edge,
             big: lum > 0.5,
           });
@@ -167,7 +163,7 @@
       const px = px3 + (p.x - px3) * m;
       const py = py3 + (p.y - py3) * m;
 
-      const size = (p.big ? 1.9 : 1.55) * (0.95 + 0.12 * s) * (1 - 0.12 * m);
+      const size = (p.big ? 2.1 : 1.8) * (0.95 + 0.12 * s) * (1 - 0.12 * m);
       ctx.fillStyle = p.r;
       ctx.globalAlpha = Math.min(1, p.a * (0.85 + 0.2 * s));
       ctx.fillRect(px, py, size, size);
